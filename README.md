@@ -1,75 +1,46 @@
-# React + TypeScript + Vite
+# Paradigmia
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación web construida con React, TypeScript, Vite y Supabase (autenticación por correo y contraseña).
 
-Currently, two official plugins are available:
+## Requisitos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- [Bun](https://bun.sh) (recomendado) o Node.js + npm
 
-## React Compiler
+## Instalación
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+bun install
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+## Variables de entorno
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Crea un archivo `.env.local` en la raíz del proyecto con las siguientes variables:
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```env
+VITE_SUPABASE_URL=tu_url_de_supabase
+VITE_SUPABASE_PUBLISHABLE_KEY=tu_clave_publica
 ```
+
+Puedes obtener estos valores desde el panel de Supabase: **Project Settings → API**.
+
+## Ejecutar en local
+
+```bash
+bun run dev
+```
+
+La aplicación estará disponible en `http://localhost:5173`.
+
+## Scripts disponibles
+
+| Comando           | Descripción                                |
+| ----------------- | ------------------------------------------ |
+| `bun run dev`     | Inicia el servidor de desarrollo con HMR   |
+| `bun run build`   | Compila el proyecto para producción        |
+| `bun run preview` | Previsualiza la compilación de producción  |
+| `bun run lint`    | Ejecuta el linter (ESLint)                 |
+
+## Funcionalidades
+
+- Registro e inicio de sesión con Supabase Auth.
+- Cierre de sesión y persistencia de la sesión.

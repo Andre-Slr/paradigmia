@@ -3,7 +3,7 @@
   "configVersion": 1,
   "workspaces": {
     "": {
-      "name": "plataforma-aprendizaje",
+      "name": "paradigmia",
       "dependencies": {
         "@supabase/supabase-js": "^2.118.0",
         "react": "^19.2.8",
