@@ -1,4 +1,5 @@
-import type { AnswerValue, Question } from './types'
+import QuestionIcon from './QuestionIcon'
+import type { AnswerValue, Question, QuestionOption } from './types'
 
 interface QuestionFieldProps {
   question: Question
@@ -11,67 +12,111 @@ export default function QuestionField({
   value,
   onChange,
 }: QuestionFieldProps) {
-  const { id, type, prompt, options, code } = question
+  const {
+    id,
+    type,
+    prompt,
+    help,
+    code,
+    options = [],
+    layout = 'pills',
+  } = question
 
-  function toggleMultiple(optionValue: string, checked: boolean) {
-    const current = Array.isArray(value) ? value : []
-    onChange(
-      checked
-        ? [...current, optionValue]
-        : current.filter((item) => item !== optionValue),
+  const isChoice = type === 'single' || type === 'multiple'
+  const inputType = type === 'multiple' ? 'checkbox' : 'radio'
+
+  function isSelected(optionValue: string): boolean {
+    if (type === 'multiple') {
+      return Array.isArray(value) && value.includes(optionValue)
+    }
+    return value === optionValue
+  }
+
+  function select(optionValue: string) {
+    if (type === 'multiple') {
+      const current = Array.isArray(value) ? value : []
+      onChange(
+        current.includes(optionValue)
+          ? current.filter((item) => item !== optionValue)
+          : [...current, optionValue],
+      )
+      return
+    }
+    onChange(optionValue)
+  }
+
+  function renderControl(option: QuestionOption) {
+    return (
+      <input
+        type={inputType}
+        name={id}
+        value={option.value}
+        checked={isSelected(option.value)}
+        onChange={() => select(option.value)}
+        className="visually-hidden"
+      />
     )
   }
 
   return (
     <div>
-      <h2 className="onboarding-question">{prompt}</h2>
-
+      <h2 className="onboarding-title">{prompt}</h2>
+      {help && <p className="onboarding-help">{help}</p>}
       {code && <pre className="onboarding-code">{code}</pre>}
 
-      {type === 'single' &&
-        options?.map((option) => (
-          <label key={option.value} className="form-check onboarding-option">
-            <input
-              type="radio"
-              className="form-check-input"
-              name={id}
-              value={option.value}
-              checked={value === option.value}
-              onChange={() => onChange(option.value)}
-            />
-            <span className="form-check-label">
-              {option.label}
-              {option.description && (
-                <span className="onboarding-option-description d-block">
-                  {option.description}
-                </span>
-              )}
-            </span>
-          </label>
-        ))}
+      {isChoice && layout === 'grid' && (
+        <div className="onboarding-grid">
+          {options.map((option) => (
+            <label
+              key={option.value}
+              className={`onboarding-lang-card${isSelected(option.value) ? ' is-selected' : ''}`}
+            >
+              {renderControl(option)}
+              {option.icon && <QuestionIcon name={option.icon} size={44} />}
+              <span>{option.label}</span>
+            </label>
+          ))}
+        </div>
+      )}
 
-      {type === 'multiple' &&
-        options?.map((option) => (
-          <label key={option.value} className="form-check onboarding-option">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              value={option.value}
-              checked={Array.isArray(value) && value.includes(option.value)}
-              onChange={(event) =>
-                toggleMultiple(option.value, event.target.checked)
-              }
-            />
-            <span className="form-check-label">
-              {option.label}
-              {option.description && (
-                <span className="onboarding-option-description d-block">
-                  {option.description}
+      {isChoice && layout === 'cards' && (
+        <div className="onboarding-cards">
+          {options.map((option) => (
+            <label
+              key={option.value}
+              className={`onboarding-card-option${isSelected(option.value) ? ' is-selected' : ''}`}
+            >
+              {renderControl(option)}
+              <span className="onboarding-card-title">{option.label}: </span>
+              <span>{option.description}</span>
+            </label>
+          ))}
+        </div>
+      )}
+
+      {isChoice && layout === 'pills' && (
+        <div className="onboarding-options">
+          {options.map((option) => (
+            <label
+              key={option.value}
+              className={`onboarding-option${isSelected(option.value) ? ' is-selected' : ''}`}
+            >
+              {renderControl(option)}
+              {option.icon && (
+                <span className="onboarding-option-icon">
+                  <QuestionIcon name={option.icon} />
                 </span>
               )}
-            </span>
-          </label>
-        ))}
+              <span className="onboarding-option-label">{option.label}</span>
+              <span
+                className={`onboarding-indicator${
+                  type === 'multiple' ? ' is-square' : ''
+                }${isSelected(option.value) ? ' is-selected' : ''}`}
+              />
+            </label>
+          ))}
+        </div>
+      )}
 
       {type === 'text' && (
         <input

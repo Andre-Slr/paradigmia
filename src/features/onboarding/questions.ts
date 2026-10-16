@@ -11,13 +11,13 @@ export const questions: Question[] = [
     section: 'inicial',
     type: 'single',
     required: true,
-    prompt:
-      '¿Cuánto sabes de programación? Selecciona la opción que mejor describa tu experiencia.',
+    prompt: '¿Cuánto sabes de programación?',
+    help: 'Selecciona la opción que mejor describa tu experiencia.',
     options: [
-      { value: 'principiante', label: 'Apenas estoy empezando' },
-      { value: 'basico', label: 'Sé lo básico' },
-      { value: 'previos', label: 'Tengo conocimientos previos' },
-      { value: 'varios', label: 'Conozco varios lenguajes' },
+      { value: 'principiante', label: 'Apenas estoy empezando', icon: 'cap' },
+      { value: 'basico', label: 'Sé lo básico', icon: 'chart' },
+      { value: 'previos', label: 'Tengo conocimientos previos', icon: 'doc' },
+      { value: 'varios', label: 'Conozco varios lenguajes', icon: 'code' },
     ],
   },
   {
@@ -26,7 +26,8 @@ export const questions: Question[] = [
     type: 'multiple',
     required: true,
     showIf: esPrincipiante,
-    prompt: '¿Qué te gustaría aprender? Puedes elegir una o varias opciones.',
+    prompt: '¿Qué te gustaría aprender?',
+    help: 'Puedes elegir una o varias opciones.',
     options: [
       { value: 'web', label: 'Páginas web' },
       { value: 'videojuegos', label: 'Videojuegos' },
@@ -40,18 +41,19 @@ export const questions: Question[] = [
     section: 'inicial',
     type: 'single',
     required: true,
+    layout: 'grid',
     showIf: noEsPrincipiante,
-    prompt:
-      '¿Qué lenguaje quieres aprender? Selecciona el lenguaje principal.',
+    prompt: '¿Qué lenguaje quieres aprender?',
+    help: 'Selecciona el lenguaje principal.',
     options: [
-      { value: 'c', label: 'C' },
-      { value: 'cpp', label: 'C++' },
-      { value: 'python', label: 'Python' },
-      { value: 'java', label: 'Java' },
-      { value: 'css', label: 'CSS' },
-      { value: 'html', label: 'HTML' },
-      { value: 'php', label: 'PHP' },
-      { value: 'javascript', label: 'JavaScript' },
+      { value: 'c', label: 'C', icon: 'lang' },
+      { value: 'cpp', label: 'C++', icon: 'lang' },
+      { value: 'python', label: 'Python', icon: 'lang' },
+      { value: 'java', label: 'Java', icon: 'lang' },
+      { value: 'css', label: 'CSS', icon: 'lang' },
+      { value: 'html', label: 'HTML', icon: 'lang' },
+      { value: 'php', label: 'php', icon: 'lang' },
+      { value: 'javascript', label: 'JavaScript', icon: 'lang' },
     ],
   },
   {
@@ -59,8 +61,9 @@ export const questions: Question[] = [
     section: 'diagnostico',
     type: 'multiple',
     required: true,
+    layout: 'cards',
     showIf: eligioPython,
-    prompt: 'Selecciona las características de Python.',
+    prompt: 'Selecciona algunas de las características de Python:',
     options: [
       {
         value: 'sintaxis',
@@ -205,7 +208,10 @@ export const questions: Question[] = [
     prompt: '¿Por qué el siguiente código generará un error de sintaxis?',
     code: 'if True:\nprint("Hola")',
     options: [
-      { value: 'missing_semicolon', label: 'Falta un punto y coma al final del print.' },
+      {
+        value: 'missing_semicolon',
+        label: 'Falta un punto y coma al final del print.',
+      },
       {
         value: 'true_lowercase',
         label: 'La palabra True debe de ser completamente en minúsculas.',

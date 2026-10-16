@@ -35,18 +35,30 @@ export default function OnboardingPage({ onSubmit }: OnboardingPageProps) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  const visible = useMemo(
+  const sequence = useMemo(
     () => questions.filter((question) => isVisible(question, answers)),
     [answers],
   )
 
   const currentIndex = Math.max(
     0,
-    visible.findIndex((question) => question.id === currentId),
+    sequence.findIndex((question) => question.id === currentId),
   )
-  const current = visible[currentIndex]
-  const isLast = currentIndex === visible.length - 1
+  const current = sequence[currentIndex]
+  const isLast = currentIndex === sequence.length - 1
   const canAdvance = !current.required || isAnswered(current, answers)
+
+  const initialCount = sequence.filter(
+    (question) => question.section === 'inicial',
+  ).length
+  const isInitial = current.section === 'inicial'
+  const phaseTotal = isInitial
+    ? Math.max(2, initialCount)
+    : sequence.length - initialCount
+  const phaseIndex = isInitial
+    ? currentIndex + 1
+    : currentIndex - initialCount + 1
+  const progress = phaseTotal > 0 ? (phaseIndex / phaseTotal) * 100 : 0
 
   function handleAnswer(id: string, value: AnswerValue) {
     setAnswers((previous) => pruneAnswers({ ...previous, [id]: value }))
@@ -54,7 +66,7 @@ export default function OnboardingPage({ onSubmit }: OnboardingPageProps) {
 
   function goBack() {
     if (currentIndex === 0) return
-    setCurrentId(visible[currentIndex - 1].id)
+    setCurrentId(sequence[currentIndex - 1].id)
   }
 
   async function finalize() {
@@ -69,52 +81,78 @@ export default function OnboardingPage({ onSubmit }: OnboardingPageProps) {
   }
 
   function goNext() {
-    if (!canAdvance) return
+    if (!canAdvance || submitting) return
     if (isLast) {
       void finalize()
       return
     }
-    setCurrentId(visible[currentIndex + 1].id)
+    setCurrentId(sequence[currentIndex + 1].id)
   }
 
   return (
     <main className="onboarding">
-      <section className="onboarding-card">
-        <p className="onboarding-progress">
-          Paso {currentIndex + 1} de {visible.length}
-        </p>
-
-        <QuestionField
-          question={current}
-          value={answers[current.id]}
-          onChange={(value) => handleAnswer(current.id, value)}
-        />
-
-        {error && (
-          <div className="alert alert-danger py-2 mb-0 mt-3" role="alert">
-            {error}
-          </div>
-        )}
-
-        <div className="d-flex justify-content-between mt-4">
+      <div className="onboarding-shell">
+        <header className="onboarding-top">
           <button
-            className="btn btn-light"
             type="button"
+            className="onboarding-back"
             onClick={goBack}
             disabled={currentIndex === 0 || submitting}
+            aria-label="Atrás"
           >
-            Atrás
+            <svg
+              width="26"
+              height="26"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M19 12H5" />
+              <path d="m12 19-7-7 7-7" />
+            </svg>
           </button>
+
+          <div className="onboarding-progress">
+            <div
+              className="onboarding-progress-fill"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          <span className="onboarding-count">
+            {phaseIndex}/{phaseTotal}
+          </span>
+        </header>
+
+        <section className="onboarding-body">
+          <QuestionField
+            question={current}
+            value={answers[current.id]}
+            onChange={(value) => handleAnswer(current.id, value)}
+          />
+
+          {error && (
+            <div className="alert alert-danger py-2 mb-0 mt-3" role="alert">
+              {error}
+            </div>
+          )}
+        </section>
+
+        <footer className="onboarding-footer">
           <button
-            className="btn btn-primary"
             type="button"
+            className="onboarding-continue"
             onClick={goNext}
             disabled={!canAdvance || submitting}
           >
-            {isLast ? (submitting ? 'Guardando...' : 'Finalizar') : 'Siguiente'}
+            {isLast ? (submitting ? 'Guardando...' : 'Finalizar') : 'Continuar'}
           </button>
-        </div>
-      </section>
+        </footer>
+      </div>
     </main>
   )
 }
