@@ -392,3 +392,421 @@ h1, h2, h3, h4, h5, h6, nav {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+.btn-mustard {
+  --bs-btn-color: #FFFFFF;
+  --bs-btn-bg: var(--verde-mostaza);
+  --bs-btn-border-color: var(--verde-mostaza);
+  --bs-btn-hover-color: #FFFFFF;
+  --bs-btn-hover-bg: var(--bs-primary);
+  --bs-btn-hover-border-color: var(--bs-primary);
+  --bs-btn-active-color: #FFFFFF;
+  --bs-btn-active-bg: var(--bs-primary);
+  --bs-btn-active-border-color: var(--bs-primary);
+  --bs-btn-disabled-color: #FFFFFF;
+  --bs-btn-disabled-bg: var(--verde-mostaza);
+  --bs-btn-disabled-border-color: var(--verde-mostaza);
+  --bs-btn-focus-shadow-rgb: 104, 125, 49;
+}
+
+.link-mustard {
+  color: var(--verde-mostaza);
+  font-weight: 700;
+}
+
+.link-mustard:hover {
+  color: var(--bs-primary);
+}
+
+.dashboard {
+  min-height: 100vh;
+  background: var(--bs-body-bg);
+  color: var(--bs-body-color);
+}
+
+.dashboard a {
+  text-decoration: none;
+}
+
+.dashboard-topbar {
+  background: #FFFFFF;
+  border-bottom: 1px solid rgba(25, 53, 12, 0.12);
+}
+
+.dashboard-brand {
+  color: var(--bs-primary);
+  font-family: 'Nunito', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.dashboard-brand small {
+  color: var(--bs-secondary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dashboard-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--bs-primary);
+  color: #FFFFFF;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.dashboard-search {
+  width: min(460px, 42vw);
+}
+
+.dashboard-search .input-group-text,
+.dashboard-search .form-control {
+  background: #FFFFFF;
+  border-color: rgba(25, 53, 12, 0.18);
+  color: var(--bs-body-color);
+}
+
+.dashboard-search .input-group-text {
+  color: var(--bs-secondary);
+}
+
+.dashboard-search .form-control::placeholder {
+  color: var(--bs-secondary);
+  opacity: 0.85;
+}
+
+.dashboard-search .form-control:focus {
+  border-color: var(--bs-secondary);
+  box-shadow: none;
+}
+
+.dashboard-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bs-primary);
+  color: #FFFFFF;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+}
+
+.dashboard-sidebar {
+  background: #FFFFFF;
+  border-right: 1px solid rgba(25, 53, 12, 0.12);
+}
+
+.dashboard-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.dashboard-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.65rem;
+  color: var(--bs-secondary);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+}
+
+.dashboard-nav-icon {
+  width: 20px;
+  text-align: center;
+  color: var(--verde-mostaza);
+  font-size: 1.05rem;
+}
+
+.dashboard-nav-link:hover,
+.dashboard-nav-link.active {
+  background: var(--bs-primary);
+  color: #FFFFFF;
+}
+
+.dashboard-nav-link:hover .dashboard-nav-icon,
+.dashboard-nav-link.active .dashboard-nav-icon {
+  color: var(--bs-light);
+}
+
+.dashboard-note {
+  margin-top: auto;
+  padding: 1rem;
+  border-radius: 0.85rem;
+  background: var(--bs-light);
+}
+
+.dashboard-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.4rem;
+  border-radius: 50%;
+  background: var(--verde-mostaza);
+}
+
+.dashboard-main {
+  min-width: 0;
+}
+
+.dashboard-hero {
+  background: var(--bs-primary);
+  color: #FFFFFF;
+  border-radius: 1.25rem;
+}
+
+.dashboard-hero-eyebrow {
+  color: var(--bs-info);
+  letter-spacing: 1.6px;
+  font-size: 0.7rem;
+}
+
+.dashboard-accent {
+  color: var(--bs-info);
+}
+
+.dashboard-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 230px;
+  overflow: hidden;
+  border-radius: 1rem;
+  background: radial-gradient(ellipse at center, rgba(111, 169, 187, 0.32) 0%, rgba(111, 169, 187, 0.12) 55%, transparent 75%);
+}
+
+.dashboard-art-bubble {
+  position: absolute;
+  top: 16px;
+  right: 20px;
+  padding: 0.7rem 1rem;
+  border-radius: 0.8rem 0.8rem 0.8rem 0.15rem;
+  background: var(--verde-mostaza);
+  color: #FFFFFF;
+  font-weight: 800;
+}
+
+.dashboard-mascot {
+  position: absolute;
+  top: 50px;
+  left: 50%;
+  width: 140px;
+  height: 120px;
+  transform: translateX(-50%);
+}
+
+.dashboard-mascot-head {
+  position: absolute;
+  inset: 22px 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  border: 4px solid var(--bs-primary);
+  border-radius: 43% 43% 38% 38%;
+  background: var(--verde-mostaza);
+}
+
+.dashboard-mascot-eye {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 38px;
+  border: 4px solid var(--bs-primary);
+  border-radius: 50%;
+  background: #FFFFFF;
+}
+
+.dashboard-mascot-eye::after {
+  content: "";
+  width: 11px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bs-primary);
+}
+
+.dashboard-mascot-antenna {
+  position: absolute;
+  top: 0;
+  width: 5px;
+  height: 32px;
+  border-radius: 4px;
+  background: var(--bs-secondary);
+}
+
+.dashboard-mascot-antenna::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  left: -5px;
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  background: var(--bs-info);
+}
+
+.dashboard-mascot-antenna.left {
+  left: 34px;
+  transform: rotate(-23deg);
+}
+
+.dashboard-mascot-antenna.right {
+  right: 33px;
+  transform: rotate(23deg);
+}
+
+.dashboard-laptop {
+  position: absolute;
+  z-index: 2;
+  bottom: 14px;
+  left: 50%;
+  display: grid;
+  place-items: center;
+  width: 170px;
+  height: 72px;
+  transform: translateX(-50%);
+  border: 4px solid var(--bs-primary);
+  border-radius: 0.6rem 0.6rem 0.3rem 0.3rem;
+  background: #FFFFFF;
+  color: var(--bs-primary);
+  font-size: 1.6rem;
+  font-weight: 800;
+  box-shadow: 0 8px 0 rgba(25, 53, 12, 0.25);
+}
+
+.dashboard-course-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1rem;
+  border: 1px solid rgba(25, 53, 12, 0.12);
+  border-radius: 0.9rem;
+  background: #FFFFFF;
+}
+
+.dashboard-course-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 0.7rem;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.dashboard-course-icon.javascript {
+  background: var(--verde-mostaza);
+  color: #FFFFFF;
+}
+
+.dashboard-course-icon.python {
+  background: var(--bs-secondary);
+  color: #FFFFFF;
+}
+
+.dashboard-course-icon.react {
+  background: var(--bs-info);
+  color: var(--bs-primary);
+}
+
+.dashboard-course-icon.node {
+  background: var(--bs-primary);
+  color: #FFFFFF;
+}
+
+.dashboard-level-badge {
+  background: rgba(64, 103, 104, 0.14);
+  color: var(--bs-secondary);
+  font-weight: 700;
+}
+
+.dashboard-course-card .progress {
+  height: 7px;
+  background: rgba(25, 53, 12, 0.12);
+}
+
+.dashboard-progress-bar {
+  background: var(--bs-secondary);
+}
+
+.dashboard-category {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+  padding: 0.9rem 0.85rem;
+  border: 1px solid rgba(25, 53, 12, 0.12);
+  border-radius: 0.8rem;
+  background: #FFFFFF;
+  color: var(--bs-body-color);
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+.dashboard-category:hover {
+  border-color: var(--bs-secondary);
+  transform: translateY(-1px);
+}
+
+.dashboard-category-icon {
+  color: var(--verde-mostaza);
+  font-size: 1.15rem;
+}
+
+.dashboard-popular-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid rgba(25, 53, 12, 0.12);
+  border-radius: 0.85rem;
+  background: #FFFFFF;
+}
+
+.dashboard-popular-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  border-radius: 0.7rem;
+  background: var(--bs-light);
+  font-size: 1.15rem;
+}
+
+@media (min-width: 768px) {
+  .dashboard-sidebar {
+    width: 230px;
+    flex: 0 0 230px;
+  }
+}
+
+@media (max-width: 767.98px) {
+  .dashboard-search {
+    order: 3;
+    width: 100%;
+  }
+
+  .dashboard-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid rgba(25, 53, 12, 0.12);
+  }
+
+  .dashboard-nav {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .dashboard-nav-link {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+  }
+}

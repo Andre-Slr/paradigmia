@@ -4,7 +4,6 @@ import { useAuth } from '@/features/auth/useAuth'
 import DashboardPage from '@/features/dashboard/DashboardPage'
 import OnboardingPage from '@/features/onboarding/OnboardingPage'
 import { useOnboarding } from '@/features/onboarding/useOnboarding'
-import MainPage from '@/features/dashboard/MainPage'
 
 export default function App() {
   const { user, loading, signIn, signUp, signOut } = useAuth()
@@ -69,16 +68,6 @@ export default function App() {
             <Navigate to="/onboarding" replace />
           ) : (
             <DashboardPage user={user} onLogout={signOut} />
-          )
-        }
-      />
-       <Route
-        path="/main"
-        element={
-          user ? (
-            <MainPage user={user} onLogout={signOut} />
-          ) : (
-            <Navigate to="/login" replace />
           )
         }
       />
