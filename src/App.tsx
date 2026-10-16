@@ -1,122 +1,243 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
+import type { User } from '@supabase/supabase-js'
+import { supabase } from './lib/supabaseClient'
+import './index.css'
+
+export default function App() {
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
+  const [registerMode, setRegisterMode] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+
+  useEffect(() => {
+    let active = true
+
+    async function loadSession() {
+      const { data, error } = await supabase.auth.getSession()
+
+      if (!active) return
+
+      if (error) {
+        setError(error.message)
+      } else {
+        setUser(data.session?.user ?? null)
+      }
+
+      setLoading(false)
+    }
+
+    void loadSession()
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => {
+      active = false
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError('')
+    setMessage('')
+
+    const normalizedEmail = email.trim()
+
+    if (!normalizedEmail || !password) {
+      setError('Escribe tu correo y contraseña.')
+      return
+    }
+
+    setSubmitting(true)
+
+    try {
+      if (registerMode) {
+        const { data, error } = await supabase.auth.signUp({
+          email: normalizedEmail,
+          password,
+        })
+
+        if (error) throw error
+
+        if (data.session) {
+          setMessage('Cuenta creada. Ya has iniciado sesión.')
+        } else {
+          setMessage(
+            'Cuenta creada. Revisa la configuración de confirmación de correo.'
+          )
+        }
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: normalizedEmail,
+          password,
+        })
+
+        if (error) throw error
+
+        setMessage('Inicio de sesión correcto.')
+      }
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : 'Ocurrió un error inesperado.'
+      )
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  async function handleLogout() {
+    setError('')
+    setMessage('')
+
+    const { error } = await supabase.auth.signOut()
+
+    if (error) {
+      setError(error.message)
+    } else {
+      setPassword('')
+      setMessage('Has cerrado la sesión.')
+    }
+  }
+
+  if (loading) {
+    return (
+      <main className="page">
+        <section className="card">
+          <p>Comprobando sesión...</p>
+        </section>
+      </main>
+    )
+  }
+
+  if (user) {
+    return (
+      <main className="page">
+        <section className="card">
+          <div className="brand-icon">✓</div>
+          <p className="eyebrow">MI PROYECTO</p>
+          <h1>¡Bienvenido!</h1>
+          <p className="subtitle">
+            Has iniciado sesión correctamente.
+          </p>
+
+          <div className="user-info">
+            <span>Sesión iniciada como</span>
+            <strong>{user.email}</strong>
+          </div>
+
+          {message && (
+            <p className="success" role="status">{message}</p>
+          )}
+
+          {error && (
+            <p className="error" role="alert">{error}</p>
+          )}
+
+          <button
+            className="button secondary"
+            type="button"
+            onClick={handleLogout}
+          >
+            Cerrar sesión
+          </button>
+        </section>
+      </main>
+    )
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+    <main className="page">
+      <section className="card">
+        <div className="brand-icon">S</div>
+        <p className="eyebrow">MI PROYECTO REACT</p>
+
+        <h1>
+          {registerMode ? 'Crear cuenta' : 'Bienvenido de nuevo'}
+        </h1>
+
+        <p className="subtitle">
+          {registerMode
+            ? 'Crea tu cuenta para comenzar.'
+            : 'Ingresa tus datos para continuar.'}
+        </p>
+
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="email">Correo electrónico</label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="tu@correo.com"
+            autoComplete="email"
+            required
+          />
+
+          <label htmlFor="password">Contraseña</label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Mínimo 6 caracteres"
+            autoComplete={
+              registerMode ? 'new-password' : 'current-password'
+            }
+            minLength={6}
+            required
+          />
+
+          {error && (
+            <p className="error" role="alert">{error}</p>
+          )}
+
+          {message && (
+            <p className="success" role="status">{message}</p>
+          )}
+
+          <button
+            className="button"
+            type="submit"
+            disabled={submitting}
+          >
+            {submitting
+              ? 'Procesando...'
+              : registerMode
+                ? 'Crear cuenta'
+                : 'Iniciar sesión'}
+          </button>
+        </form>
+
+        <p className="switch-mode">
+          {registerMode
+            ? '¿Ya tienes una cuenta?'
+            : '¿No tienes una cuenta?'}
+          {' '}
+          <button
+            type="button"
+            className="text-button"
+            onClick={() => {
+              setRegisterMode((current) => !current)
+              setMessage('')
+              setError('')
+            }}
+          >
+            {registerMode ? 'Inicia sesión' : 'Regístrate'}
+          </button>
+        </p>
       </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </main>
   )
 }
-
-export default App
