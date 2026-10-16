@@ -318,6 +318,12 @@ h1, h2, h3, h4, h5, h6, nav {
   border-color: var(--bs-info);
 }
 
+.onboarding-lang-logo {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+}
+
 .onboarding-cards {
   display: flex;
   flex-direction: column;

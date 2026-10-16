@@ -1,4 +1,5 @@
 import QuestionIcon from './QuestionIcon'
+import { languageIcons } from './languageIcons'
 import type { AnswerValue, Question, QuestionOption } from './types'
 
 interface QuestionFieldProps {
@@ -72,7 +73,12 @@ export default function QuestionField({
               className={`onboarding-lang-card${isSelected(option.value) ? ' is-selected' : ''}`}
             >
               {renderControl(option)}
-              {option.icon && <QuestionIcon name={option.icon} size={44} />}
+              <img
+                className="onboarding-lang-logo"
+                src={languageIcons[option.value]}
+                alt=""
+                aria-hidden="true"
+              />
               <span>{option.label}</span>
             </label>
           ))}
