@@ -1,13 +1,14 @@
-
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabaseClient'
-import './index.css'
 
 export default function App() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [username, setUsername] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -46,15 +47,42 @@ export default function App() {
     }
   }, [])
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  function resetFeedback() {
     setError('')
     setMessage('')
+  }
+
+  function toggleMode() {
+    setRegisterMode((current) => !current)
+    resetFeedback()
+    setPassword('')
+    setConfirmPassword('')
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    resetFeedback()
 
     const normalizedEmail = email.trim()
 
-    if (!normalizedEmail || !password) {
-      setError('Escribe tu correo y contraseña.')
+    if (registerMode) {
+      if (
+        !fullName.trim() ||
+        !normalizedEmail ||
+        !username.trim() ||
+        !password ||
+        !confirmPassword
+      ) {
+        setError('Completa todos los campos.')
+        return
+      }
+
+      if (password !== confirmPassword) {
+        setError('Las contraseñas no coinciden.')
+        return
+      }
+    } else if (!normalizedEmail || !password) {
+      setError('Escribe tu usuario/correo y contraseña.')
       return
     }
 
@@ -65,6 +93,12 @@ export default function App() {
         const { data, error } = await supabase.auth.signUp({
           email: normalizedEmail,
           password,
+          options: {
+            data: {
+              nombre: fullName.trim(),
+              nombre_usuario: username.trim(),
+            },
+          },
         })
 
         if (error) throw error
@@ -98,8 +132,7 @@ export default function App() {
   }
 
   async function handleLogout() {
-    setError('')
-    setMessage('')
+    resetFeedback()
 
     const { error } = await supabase.auth.signOut()
 
@@ -113,131 +146,179 @@ export default function App() {
 
   if (loading) {
     return (
-      <main className="page">
-        <section className="card">
-          <p>Comprobando sesión...</p>
-        </section>
+      <main className="auth">
+        <div className="d-flex flex-grow-1 align-items-center justify-content-center">
+          <p className="subtitle mb-0">Comprobando sesión...</p>
+        </div>
       </main>
     )
   }
 
   if (user) {
     return (
-      <main className="page">
-        <section className="card">
-          <div className="brand-icon">✓</div>
-          <p className="eyebrow">MI PROYECTO</p>
-          <h1>¡Bienvenido!</h1>
-          <p className="subtitle">
-            Has iniciado sesión correctamente.
-          </p>
+      <main className="auth">
+        <div className="row g-0 flex-grow-1">
+          <div className="col-12 auth-form-panel">
+            <section className="auth-form">
+              <div className="brand-icon">✓</div>
+              <h1 className="mt-3 mb-1">¡Bienvenido!</h1>
+              <p className="subtitle">Has iniciado sesión correctamente.</p>
 
-          <div className="user-info">
-            <span>Sesión iniciada como</span>
-            <strong>{user.email}</strong>
+              <div className="user-info">
+                <span>Sesión iniciada como</span>
+                <strong>{user.email}</strong>
+              </div>
+
+              {message && (
+                <div className="alert alert-success py-2 mb-0 mt-3" role="status">
+                  {message}
+                </div>
+              )}
+
+              {error && (
+                <div className="alert alert-danger py-2 mb-0 mt-3" role="alert">
+                  {error}
+                </div>
+              )}
+
+              <button
+                className="btn btn-light w-100 mt-3"
+                type="button"
+                onClick={handleLogout}
+              >
+                Cerrar sesión
+              </button>
+            </section>
           </div>
-
-          {message && (
-            <p className="success" role="status">{message}</p>
-          )}
-
-          {error && (
-            <p className="error" role="alert">{error}</p>
-          )}
-
-          <button
-            className="button secondary"
-            type="button"
-            onClick={handleLogout}
-          >
-            Cerrar sesión
-          </button>
-        </section>
+        </div>
       </main>
     )
   }
 
   return (
-    <main className="page">
-      <section className="card">
-        <div className="brand-icon">S</div>
-        <p className="eyebrow">MI PROYECTO REACT</p>
+    <main className="auth">
+      <div className="row g-0 flex-grow-1">
+        <div
+          className="col-12 col-md-6 auth-visual d-none d-md-flex"
+          aria-hidden="true"
+        >
+          <div className="brand-icon">S</div>
+        </div>
 
-        <h1>
-          {registerMode ? 'Crear cuenta' : 'Bienvenido de nuevo'}
-        </h1>
+        <div className="col-12 col-md-6 auth-form-panel">
+          <section className="auth-form">
+            <form className="d-grid gap-3" onSubmit={handleSubmit}>
+              {registerMode ? (
+                <>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                    placeholder="Nombre"
+                    autoComplete="name"
+                    aria-label="Nombre"
+                  />
+                  <input
+                    type="email"
+                    className="form-control"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="Correo electrónico"
+                    autoComplete="email"
+                    aria-label="Correo electrónico"
+                  />
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    placeholder="Nombre de usuario"
+                    autoComplete="username"
+                    aria-label="Nombre de usuario"
+                  />
+                  <input
+                    type="password"
+                    className="form-control"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Contraseña"
+                    autoComplete="new-password"
+                    aria-label="Contraseña"
+                  />
+                  <input
+                    type="password"
+                    className="form-control"
+                    value={confirmPassword}
+                    onChange={(event) =>
+                      setConfirmPassword(event.target.value)
+                    }
+                    placeholder="Confirmar contraseña"
+                    autoComplete="new-password"
+                    aria-label="Confirmar contraseña"
+                  />
+                </>
+              ) : (
+                <>
+                  <input
+                    type="email"
+                    className="form-control"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="Usuario / correo"
+                    autoComplete="username"
+                    aria-label="Usuario o correo"
+                  />
+                  <input
+                    type="password"
+                    className="form-control"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Contraseña"
+                    autoComplete="current-password"
+                    aria-label="Contraseña"
+                  />
+                </>
+              )}
 
-        <p className="subtitle">
-          {registerMode
-            ? 'Crea tu cuenta para comenzar.'
-            : 'Ingresa tus datos para continuar.'}
-        </p>
+              {error && (
+                <div className="alert alert-danger py-2 mb-0" role="alert">
+                  {error}
+                </div>
+              )}
 
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="email">Correo electrónico</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="tu@correo.com"
-            autoComplete="email"
-            required
-          />
+              {message && (
+                <div className="alert alert-success py-2 mb-0" role="status">
+                  {message}
+                </div>
+              )}
 
-          <label htmlFor="password">Contraseña</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Mínimo 6 caracteres"
-            autoComplete={
-              registerMode ? 'new-password' : 'current-password'
-            }
-            minLength={6}
-            required
-          />
+              <button
+                className="btn btn-primary w-100 mt-2"
+                type="submit"
+                disabled={submitting}
+              >
+                {submitting
+                  ? 'Procesando...'
+                  : registerMode
+                    ? 'Crear cuenta'
+                    : 'Iniciar sesión'}
+              </button>
+            </form>
 
-          {error && (
-            <p className="error" role="alert">{error}</p>
-          )}
-
-          {message && (
-            <p className="success" role="status">{message}</p>
-          )}
-
-          <button
-            className="button"
-            type="submit"
-            disabled={submitting}
-          >
-            {submitting
-              ? 'Procesando...'
-              : registerMode
-                ? 'Crear cuenta'
-                : 'Iniciar sesión'}
-          </button>
-        </form>
-
-        <p className="switch-mode">
-          {registerMode
-            ? '¿Ya tienes una cuenta?'
-            : '¿No tienes una cuenta?'}
-          {' '}
-          <button
-            type="button"
-            className="text-button"
-            onClick={() => {
-              setRegisterMode((current) => !current)
-              setMessage('')
-              setError('')
-            }}
-          >
-            {registerMode ? 'Inicia sesión' : 'Regístrate'}
-          </button>
-        </p>
-      </section>
+            <p className="text-center text-secondary mt-3 mb-0">
+              {registerMode ? '¿Ya tienes una cuenta? ' : ''}
+              <button
+                type="button"
+                className="text-button"
+                onClick={toggleMode}
+              >
+                {registerMode ? 'Inicia sesión' : 'Crear cuenta'}
+              </button>
+            </p>
+          </section>
+        </div>
+      </div>
     </main>
   )
 }

@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Nunito:wght@400;600;700;800&display=swap');
+
+:root {
+  --bs-primary: #19350C;
+  --bs-secondary: #406768;
+  --bs-success: #047857;
+  --bs-danger: #b91c1c;
+  --bs-info: #6FA9BB;
+  --bs-light: #D5D3CC;
+
+  --bs-primary-rgb: 25, 53, 12;
+  --bs-secondary-rgb: 64, 103, 104;
+  --bs-success-rgb: 4, 120, 87;
+  --bs-danger-rgb: 185, 28, 28;
+  --bs-info-rgb: 111, 169, 187;
+  --bs-light-rgb: 213, 211, 204;
+
+  --bs-body-bg: #FFFFFF;
+  --bs-body-color: #19350C;
+  --bs-font-sans-serif: 'Inter', sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6, nav {
+  font-family: 'Nunito', sans-serif;
+}
+
+.btn {
+  font-family: 'Nunito', sans-serif;
+}
+
+.btn-primary {
+  --bs-btn-color: #FFFFFF;
+  --bs-btn-bg: var(--bs-primary);
+  --bs-btn-border-color: var(--bs-primary);
+  --bs-btn-hover-color: #FFFFFF;
+  --bs-btn-hover-bg: var(--bs-secondary);
+  --bs-btn-hover-border-color: var(--bs-secondary);
+  --bs-btn-active-color: #FFFFFF;
+  --bs-btn-active-bg: var(--bs-secondary);
+  --bs-btn-active-border-color: var(--bs-secondary);
+  --bs-btn-disabled-color: #FFFFFF;
+  --bs-btn-disabled-bg: var(--bs-primary);
+  --bs-btn-disabled-border-color: var(--bs-primary);
+  --bs-btn-focus-shadow-rgb: 25, 53, 12;
+}
+
+.btn-light {
+  --bs-btn-color: var(--bs-primary);
+  --bs-btn-bg: var(--bs-light);
+  --bs-btn-border-color: var(--bs-light);
+  --bs-btn-hover-color: var(--bs-primary);
+  --bs-btn-hover-bg: var(--bs-light);
+  --bs-btn-hover-border-color: var(--bs-secondary);
+  --bs-btn-active-color: var(--bs-primary);
+  --bs-btn-active-bg: var(--bs-light);
+  --bs-btn-active-border-color: var(--bs-secondary);
+  --bs-btn-focus-shadow-rgb: 213, 211, 204;
+}
+
+.auth {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bs-body-bg);
+}
+
+.auth-visual {
+  background: var(--bs-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-icon {
+  width: 96px;
+  height: 96px;
+  display: grid;
+  place-items: center;
+  border-radius: 24px;
+  background: var(--bs-primary);
+  color: #fff;
+  font-size: 48px;
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+}
+
+.auth-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 28px;
+}
+
+.auth-form {
+  width: 100%;
+  max-width: 340px;
+}
+
+.auth-form .brand-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  font-size: 25px;
+}
+
+.subtitle {
+  color: var(--bs-secondary);
+  line-height: 1.6;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 24px;
+  padding: 16px;
+  border-radius: 10px;
+  background: var(--bs-light);
+  overflow-wrap: anywhere;
+}
+
+.user-info span {
+  color: var(--bs-secondary);
+  font-size: 13px;
+}
+
+.form-control {
+  color: var(--bs-body-color);
+  border-color: var(--bs-light);
+}
+
+.form-control::placeholder {
+  color: var(--bs-secondary);
+  opacity: 0.85;
+}
+
+.form-control:focus {
+  border-color: var(--bs-secondary);
+  box-shadow: 0 0 0 0.25rem rgba(111, 169, 187, 0.25);
+}
+
+.text-button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary);
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+}
+
+.text-button:hover {
+  color: var(--bs-primary);
+}
