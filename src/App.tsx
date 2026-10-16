@@ -198,15 +198,21 @@ export default function App() {
   return (
     <main className="auth">
       <div className="row g-0 flex-grow-1">
+        {/* Panel izquierdo */}
         <div
           className="col-12 col-md-6 auth-visual d-none d-md-flex"
           aria-hidden="true"
+          style={{ backgroundImage: 'url(https://images.pexels.com/photos/39520964/pexels-photo-39520964.jpeg)', backgroundSize: 'cover', backgroundPosition: 'center' }}
         >
-          <div className="brand-icon">S</div>
         </div>
 
+        {/* Panel derecho */}
         <div className="col-12 col-md-6 auth-form-panel">
           <section className="auth-form">
+            <p className="text-center text-primary mb-10 fs-2 fw-bold">
+              Paradigmia
+            </p>
+
             <form className="d-grid gap-3" onSubmit={handleSubmit}>
               {registerMode ? (
                 <>
