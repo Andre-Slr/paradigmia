@@ -15,7 +15,7 @@
   --bs-info-rgb: 111, 169, 187;
   --bs-light-rgb: 213, 211, 204;
 
-  --bs-body-bg: #FFFFFF;
+  --bs-body-bg: #D5D3CC;
   --bs-body-color: #19350C;
   --bs-font-sans-serif: 'Inter', sans-serif;
 }
@@ -94,7 +94,9 @@ h1, h2, h3, h4, h5, h6, nav {
 .auth-form {
   width: 100%;
   max-width: 340px;
-  border-radius: 10px;  padding: 32px;
+  border-radius: 10px;
+  padding: 32px;
+  background: #FFFFFF;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
@@ -154,4 +156,51 @@ h1, h2, h3, h4, h5, h6, nav {
 
 .text-button:hover {
   color: var(--bs-primary);
+}
+
+.onboarding {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--bs-body-bg);
+}
+
+.onboarding-card {
+  width: 100%;
+  max-width: 560px;
+  padding: 32px;
+  border-radius: 10px;
+  background: #FFFFFF;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.onboarding-progress {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--bs-secondary);
+}
+
+.onboarding-question {
+  margin: 8px 0 20px;
+  font-size: 20px;
+}
+
+.onboarding-option {
+  cursor: pointer;
+}
+
+.onboarding-option-description {
+  color: var(--bs-secondary);
+  font-size: 13px;
+}
+
+.onboarding-code {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--bs-light);
+  font-size: 13px;
+  overflow-x: auto;
 }

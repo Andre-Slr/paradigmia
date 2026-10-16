@@ -10,7 +10,7 @@ interface AuthPageProps {
 
 export default function AuthPage({ mode, onSignIn, onSignUp }: AuthPageProps) {
   return (
-    <main className="auth">
+    <main className="auth auth-login">
       <div className="row g-0 flex-grow-1">
         <div
           className="col-12 col-md-6 auth-visual d-none d-md-flex"

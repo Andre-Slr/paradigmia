@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { User } from '@supabase/supabase-js'
+import { useProfile } from '@/features/profile/useProfile'
 
 interface DashboardPageProps {
   user: User
@@ -8,12 +9,15 @@ interface DashboardPageProps {
 
 export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
   const [error, setError] = useState('')
+  const { profile } = useProfile(user.id)
 
   async function handleLogout() {
     setError('')
     const message = await onLogout()
     if (message) setError(message)
   }
+
+  const nombre = profile?.nombre ?? user.user_metadata.nombre ?? user.email
 
   return (
     <main className="auth">
@@ -26,7 +30,7 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 
             <div className="user-info">
               <span>Sesión iniciada como</span>
-              <strong>{user.user_metadata.nombre}</strong>
+              <strong>{nombre}</strong>
             </div>
 
             {error && (
