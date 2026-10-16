@@ -148,6 +148,7 @@ h1, h2, h3, h4, h5, h6, nav {
   color: var(--bs-secondary);
   font-weight: 700;
   font-family: 'Nunito', sans-serif;
+  text-decoration: none;
   cursor: pointer;
 }
 
