@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { useProfile } from '@/features/profile/useProfile'
+import { useNavigate } from 'react-router-dom';
 
 interface DashboardPageProps {
   user: User
@@ -10,6 +11,7 @@ interface DashboardPageProps {
 export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
   const [error, setError] = useState('')
   const { profile } = useProfile(user.id)
+  const navigate = useNavigate()
 
   async function handleLogout() {
     setError('')
@@ -38,6 +40,13 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
                 {error}
               </div>
             )}
+            <button
+              className="btn btn-light w-100 mt-3"
+              type="button"
+              onClick={() => navigate('/main')}
+            >
+              siguiente
+            </button>
 
             <button
               className="btn btn-light w-100 mt-3"
