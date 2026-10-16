@@ -2,11 +2,14 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import AuthPage from '@/features/auth/AuthPage'
 import { useAuth } from '@/features/auth/useAuth'
 import DashboardPage from '@/features/dashboard/DashboardPage'
+import OnboardingPage from '@/features/onboarding/OnboardingPage'
+import { useOnboarding } from '@/features/onboarding/useOnboarding'
 
 export default function App() {
   const { user, loading, signIn, signUp, signOut } = useAuth()
+  const { status, submit } = useOnboarding(user?.id)
 
-  if (loading) {
+  if (loading || (user && status === 'loading')) {
     return (
       <main className="auth">
         <div className="d-flex flex-grow-1 align-items-center justify-content-center">
@@ -16,13 +19,19 @@ export default function App() {
     )
   }
 
+  const home = !user
+    ? '/login'
+    : status === 'completed'
+      ? '/dashboard'
+      : '/onboarding'
+
   return (
     <Routes>
       <Route
         path="/login"
         element={
           user ? (
-            <Navigate to="/dashboard" replace />
+            <Navigate to={home} replace />
           ) : (
             <AuthPage mode="login" onSignIn={signIn} onSignUp={signUp} />
           )
@@ -32,26 +41,37 @@ export default function App() {
         path="/register"
         element={
           user ? (
-            <Navigate to="/dashboard" replace />
+            <Navigate to={home} replace />
           ) : (
             <AuthPage mode="register" onSignIn={signIn} onSignUp={signUp} />
           )
         }
       />
       <Route
-        path="/dashboard"
+        path="/onboarding"
         element={
-          user ? (
-            <DashboardPage user={user} onLogout={signOut} />
-          ) : (
+          !user ? (
             <Navigate to="/login" replace />
+          ) : status === 'completed' ? (
+            <Navigate to="/dashboard" replace />
+          ) : (
+            <OnboardingPage onSubmit={submit} />
           )
         }
       />
       <Route
-        path="*"
-        element={<Navigate to={user ? '/dashboard' : '/login'} replace />}
+        path="/dashboard"
+        element={
+          !user ? (
+            <Navigate to="/login" replace />
+          ) : status !== 'completed' ? (
+            <Navigate to="/onboarding" replace />
+          ) : (
+            <DashboardPage user={user} onLogout={signOut} />
+          )
+        }
       />
+      <Route path="*" element={<Navigate to={home} replace />} />
     </Routes>
   )
 }
