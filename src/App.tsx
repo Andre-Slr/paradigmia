@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
@@ -8,6 +7,9 @@ import './index.css'
 export default function App() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [username, setUsername] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -46,15 +48,42 @@ export default function App() {
     }
   }, [])
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  function resetFeedback() {
     setError('')
     setMessage('')
+  }
+
+  function toggleMode() {
+    setRegisterMode((current) => !current)
+    resetFeedback()
+    setPassword('')
+    setConfirmPassword('')
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    resetFeedback()
 
     const normalizedEmail = email.trim()
 
-    if (!normalizedEmail || !password) {
-      setError('Escribe tu correo y contraseña.')
+    if (registerMode) {
+      if (
+        !fullName.trim() ||
+        !normalizedEmail ||
+        !username.trim() ||
+        !password ||
+        !confirmPassword
+      ) {
+        setError('Completa todos los campos.')
+        return
+      }
+
+      if (password !== confirmPassword) {
+        setError('Las contraseñas no coinciden.')
+        return
+      }
+    } else if (!normalizedEmail || !password) {
+      setError('Escribe tu usuario/correo y contraseña.')
       return
     }
 
@@ -65,6 +94,12 @@ export default function App() {
         const { data, error } = await supabase.auth.signUp({
           email: normalizedEmail,
           password,
+          options: {
+            data: {
+              nombre: fullName.trim(),
+              nombre_usuario: username.trim(),
+            },
+          },
         })
 
         if (error) throw error
@@ -98,8 +133,7 @@ export default function App() {
   }
 
   async function handleLogout() {
-    setError('')
-    setMessage('')
+    resetFeedback()
 
     const { error } = await supabase.auth.signOut()
 
@@ -113,131 +147,162 @@ export default function App() {
 
   if (loading) {
     return (
-      <main className="page">
-        <section className="card">
-          <p>Comprobando sesión...</p>
-        </section>
+      <main className="auth">
+        <div className="auth-form-panel">
+          <p className="subtitle">Comprobando sesión...</p>
+        </div>
       </main>
     )
   }
 
   if (user) {
     return (
-      <main className="page">
-        <section className="card">
-          <div className="brand-icon">✓</div>
-          <p className="eyebrow">MI PROYECTO</p>
-          <h1>¡Bienvenido!</h1>
-          <p className="subtitle">
-            Has iniciado sesión correctamente.
-          </p>
+      <main className="auth">
+        <div className="auth-layout single">
+          <div className="auth-form-panel">
+            <section className="auth-form">
+              <div className="brand-icon">✓</div>
+              <h1>¡Bienvenido!</h1>
+              <p className="subtitle">Has iniciado sesión correctamente.</p>
 
-          <div className="user-info">
-            <span>Sesión iniciada como</span>
-            <strong>{user.email}</strong>
+              <div className="user-info">
+                <span>Sesión iniciada como</span>
+                <strong>{user.email}</strong>
+              </div>
+
+              {message && (
+                <p className="success" role="status">{message}</p>
+              )}
+
+              {error && (
+                <p className="error" role="alert">{error}</p>
+              )}
+
+              <button
+                className="button secondary"
+                type="button"
+                onClick={handleLogout}
+              >
+                Cerrar sesión
+              </button>
+            </section>
           </div>
-
-          {message && (
-            <p className="success" role="status">{message}</p>
-          )}
-
-          {error && (
-            <p className="error" role="alert">{error}</p>
-          )}
-
-          <button
-            className="button secondary"
-            type="button"
-            onClick={handleLogout}
-          >
-            Cerrar sesión
-          </button>
-        </section>
+        </div>
       </main>
     )
   }
 
   return (
-    <main className="page">
-      <section className="card">
-        <div className="brand-icon">S</div>
-        <p className="eyebrow">MI PROYECTO REACT</p>
+    <main className="auth">
 
-        <h1>
-          {registerMode ? 'Crear cuenta' : 'Bienvenido de nuevo'}
-        </h1>
+      <div className="auth-layout">
+        <div className="auth-visual" aria-hidden="true">
+          <div className="brand-icon">S</div>
+        </div>
 
-        <p className="subtitle">
-          {registerMode
-            ? 'Crea tu cuenta para comenzar.'
-            : 'Ingresa tus datos para continuar.'}
-        </p>
+        <div className="auth-form-panel">
+          <section className="auth-form">
+            <form onSubmit={handleSubmit}>
+              {registerMode ? (
+                <>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(event) => setFullName(event.target.value)}
+                    placeholder="Nombre"
+                    autoComplete="name"
+                    aria-label="Nombre"
+                  />
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="Correo electrónico"
+                    autoComplete="email"
+                    aria-label="Correo electrónico"
+                  />
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(event) => setUsername(event.target.value)}
+                    placeholder="Nombre de usuario"
+                    autoComplete="username"
+                    aria-label="Nombre de usuario"
+                  />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Contraseña"
+                    autoComplete="new-password"
+                    aria-label="Contraseña"
+                  />
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(event) =>
+                      setConfirmPassword(event.target.value)
+                    }
+                    placeholder="Confirmar contraseña"
+                    autoComplete="new-password"
+                    aria-label="Confirmar contraseña"
+                  />
+                </>
+              ) : (
+                <>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder="Usuario / correo"
+                    autoComplete="username"
+                    aria-label="Usuario o correo"
+                  />
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    placeholder="Contraseña"
+                    autoComplete="current-password"
+                    aria-label="Contraseña"
+                  />
+                </>
+              )}
 
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="email">Correo electrónico</label>
-          <input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="tu@correo.com"
-            autoComplete="email"
-            required
-          />
+              {error && (
+                <p className="error" role="alert">{error}</p>
+              )}
 
-          <label htmlFor="password">Contraseña</label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            placeholder="Mínimo 6 caracteres"
-            autoComplete={
-              registerMode ? 'new-password' : 'current-password'
-            }
-            minLength={6}
-            required
-          />
+              {message && (
+                <p className="success" role="status">{message}</p>
+              )}
 
-          {error && (
-            <p className="error" role="alert">{error}</p>
-          )}
+              <button
+                className="button"
+                type="submit"
+                disabled={submitting}
+              >
+                {submitting
+                  ? 'Procesando...'
+                  : registerMode
+                    ? 'Crear cuenta'
+                    : 'Iniciar sesión'}
+              </button>
+            </form>
 
-          {message && (
-            <p className="success" role="status">{message}</p>
-          )}
-
-          <button
-            className="button"
-            type="submit"
-            disabled={submitting}
-          >
-            {submitting
-              ? 'Procesando...'
-              : registerMode
-                ? 'Crear cuenta'
-                : 'Iniciar sesión'}
-          </button>
-        </form>
-
-        <p className="switch-mode">
-          {registerMode
-            ? '¿Ya tienes una cuenta?'
-            : '¿No tienes una cuenta?'}
-          {' '}
-          <button
-            type="button"
-            className="text-button"
-            onClick={() => {
-              setRegisterMode((current) => !current)
-              setMessage('')
-              setError('')
-            }}
-          >
-            {registerMode ? 'Inicia sesión' : 'Regístrate'}
-          </button>
-        </p>
-      </section>
+            <p className="switch-mode">
+              {registerMode ? '¿Ya tienes una cuenta? ' : ''}
+              <button
+                type="button"
+                className="text-button"
+                onClick={toggleMode}
+              >
+                {registerMode ? 'Inicia sesión' : 'Crear cuenta'}
+              </button>
+            </p>
+          </section>
+        </div>
+      </div>
     </main>
   )
 }

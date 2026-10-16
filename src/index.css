@@ -35,22 +35,46 @@ input {
   font: inherit;
 }
 
-.page {
+.auth {
   min-height: 100vh;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 24px;
+  flex-direction: column;
+  background: var(--blanco);
 }
 
-.card {
+.auth-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+.auth-layout.single {
+  grid-template-columns: 1fr;
+}
+
+.auth-visual {
+  background: var(--gris-claro);
+  display: grid;
+  place-items: center;
+}
+
+.auth-visual .brand-icon {
+  width: 96px;
+  height: 96px;
+  border-radius: 24px;
+  font-size: 48px;
+}
+
+.auth-form-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 28px;
+}
+
+.auth-form {
   width: 100%;
-  max-width: 420px;
-  padding: 36px;
-  background: var(--blanco);
-  border: 1px solid var(--gris-claro);
-  border-radius: 18px;
-  box-shadow: 0 16px 45px rgba(25, 53, 12, 0.08);
+  max-width: 340px;
 }
 
 .brand-icon {
@@ -65,16 +89,8 @@ input {
   font-weight: 800;
 }
 
-.eyebrow {
-  margin-top: 24px;
-  color: var(--verde-mostaza);
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 2px;
-}
-
 h1 {
-  margin: 10px 0;
+  margin: 14px 0 4px;
   font-size: 27px;
   letter-spacing: -0.8px;
 }
@@ -87,22 +103,22 @@ h1 {
 form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-top: 26px;
-}
-
-label {
-  margin-top: 8px;
-  font-size: 13px;
-  font-weight: 600;
+  gap: 12px;
 }
 
 input {
   width: 100%;
-  padding: 13px 14px;
+  padding: 13px 16px;
   border: 1px solid var(--gris-claro);
-  border-radius: 9px;
+  border-radius: 8px;
   outline: none;
+  background: var(--blanco);
+  color: var(--verde-oscuro);
+}
+
+input::placeholder {
+  color: var(--verde-azulado);
+  opacity: 0.85;
 }
 
 input:focus {
@@ -112,10 +128,10 @@ input:focus {
 
 .button {
   width: 100%;
-  margin-top: 12px;
+  margin-top: 8px;
   padding: 13px;
   border: 0;
-  border-radius: 9px;
+  border-radius: 8px;
   background: var(--verde-oscuro);
   color: var(--blanco);
   font-weight: 700;
@@ -132,13 +148,13 @@ input:focus {
 }
 
 .button.secondary {
-  margin-top: 24px;
+  margin-top: 18px;
   background: var(--gris-claro);
   color: var(--verde-oscuro);
 }
 
 .switch-mode {
-  margin-top: 24px;
+  margin-top: 16px;
   text-align: center;
   color: var(--verde-azulado);
   font-size: 13px;
@@ -184,8 +200,16 @@ input:focus {
   font-size: 13px;
 }
 
-@media (max-width: 480px) {
-  .card {
-    padding: 26px 22px;
+@media (max-width: 768px) {
+  .auth-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-visual {
+    display: none;
+  }
+
+  .auth-form-panel {
+    padding: 32px 22px;
   }
 }
