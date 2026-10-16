@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import type { FormEvent } from 'react'
 import type { User } from '@supabase/supabase-js'
 import { supabase } from './lib/supabaseClient'
-import './index.css'
 
 export default function App() {
   const [email, setEmail] = useState('')
@@ -148,8 +147,8 @@ export default function App() {
   if (loading) {
     return (
       <main className="auth">
-        <div className="auth-form-panel">
-          <p className="subtitle">Comprobando sesión...</p>
+        <div className="d-flex flex-grow-1 align-items-center justify-content-center">
+          <p className="subtitle mb-0">Comprobando sesión...</p>
         </div>
       </main>
     )
@@ -158,11 +157,11 @@ export default function App() {
   if (user) {
     return (
       <main className="auth">
-        <div className="auth-layout single">
-          <div className="auth-form-panel">
+        <div className="row g-0 flex-grow-1">
+          <div className="col-12 auth-form-panel">
             <section className="auth-form">
               <div className="brand-icon">✓</div>
-              <h1>¡Bienvenido!</h1>
+              <h1 className="mt-3 mb-1">¡Bienvenido!</h1>
               <p className="subtitle">Has iniciado sesión correctamente.</p>
 
               <div className="user-info">
@@ -171,15 +170,19 @@ export default function App() {
               </div>
 
               {message && (
-                <p className="success" role="status">{message}</p>
+                <div className="alert alert-success py-2 mb-0 mt-3" role="status">
+                  {message}
+                </div>
               )}
 
               {error && (
-                <p className="error" role="alert">{error}</p>
+                <div className="alert alert-danger py-2 mb-0 mt-3" role="alert">
+                  {error}
+                </div>
               )}
 
               <button
-                className="button secondary"
+                className="btn btn-light w-100 mt-3"
                 type="button"
                 onClick={handleLogout}
               >
@@ -194,19 +197,22 @@ export default function App() {
 
   return (
     <main className="auth">
-
-      <div className="auth-layout">
-        <div className="auth-visual" aria-hidden="true">
+      <div className="row g-0 flex-grow-1">
+        <div
+          className="col-12 col-md-6 auth-visual d-none d-md-flex"
+          aria-hidden="true"
+        >
           <div className="brand-icon">S</div>
         </div>
 
-        <div className="auth-form-panel">
+        <div className="col-12 col-md-6 auth-form-panel">
           <section className="auth-form">
-            <form onSubmit={handleSubmit}>
+            <form className="d-grid gap-3" onSubmit={handleSubmit}>
               {registerMode ? (
                 <>
                   <input
                     type="text"
+                    className="form-control"
                     value={fullName}
                     onChange={(event) => setFullName(event.target.value)}
                     placeholder="Nombre"
@@ -215,6 +221,7 @@ export default function App() {
                   />
                   <input
                     type="email"
+                    className="form-control"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="Correo electrónico"
@@ -223,6 +230,7 @@ export default function App() {
                   />
                   <input
                     type="text"
+                    className="form-control"
                     value={username}
                     onChange={(event) => setUsername(event.target.value)}
                     placeholder="Nombre de usuario"
@@ -231,6 +239,7 @@ export default function App() {
                   />
                   <input
                     type="password"
+                    className="form-control"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Contraseña"
@@ -239,6 +248,7 @@ export default function App() {
                   />
                   <input
                     type="password"
+                    className="form-control"
                     value={confirmPassword}
                     onChange={(event) =>
                       setConfirmPassword(event.target.value)
@@ -252,6 +262,7 @@ export default function App() {
                 <>
                   <input
                     type="email"
+                    className="form-control"
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="Usuario / correo"
@@ -260,6 +271,7 @@ export default function App() {
                   />
                   <input
                     type="password"
+                    className="form-control"
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Contraseña"
@@ -270,15 +282,19 @@ export default function App() {
               )}
 
               {error && (
-                <p className="error" role="alert">{error}</p>
+                <div className="alert alert-danger py-2 mb-0" role="alert">
+                  {error}
+                </div>
               )}
 
               {message && (
-                <p className="success" role="status">{message}</p>
+                <div className="alert alert-success py-2 mb-0" role="status">
+                  {message}
+                </div>
               )}
 
               <button
-                className="button"
+                className="btn btn-primary w-100 mt-2"
                 type="submit"
                 disabled={submitting}
               >
@@ -290,7 +306,7 @@ export default function App() {
               </button>
             </form>
 
-            <p className="switch-mode">
+            <p className="text-center text-secondary mt-3 mb-0">
               {registerMode ? '¿Ya tienes una cuenta? ' : ''}
               <button
                 type="button"
