@@ -26,7 +26,7 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
 
             <div className="user-info">
               <span>Sesión iniciada como</span>
-              <strong>{user.email}</strong>
+              <strong>{user.user_metadata.nombre}</strong>
             </div>
 
             {error && (

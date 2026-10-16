@@ -15,8 +15,9 @@ export default function AuthPage({ mode, onSignIn, onSignUp }: AuthPageProps) {
         <div
           className="col-12 col-md-6 auth-visual d-none d-md-flex"
           aria-hidden="true"
+          style={{ backgroundImage: "url('https://images.pexels.com/photos/39520964/pexels-photo-39520964.jpeg')", backgroundSize: 'cover', backgroundPosition: 'center' }}
         >
-          <div className="brand-icon">S</div>
+          <div className="brand-icon">P</div>
         </div>
 
         <div className="col-12 col-md-6 auth-form-panel">
