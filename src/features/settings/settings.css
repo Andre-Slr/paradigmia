@@ -33,7 +33,11 @@ html[data-contrast='alto'] .student-page :is(article, section > div, a, button, 
   border-color: rgba(25, 53, 12, 0.55);
 }
 
-html[data-contrast='alto'] .student-page a:not([class*='button']):not([class*='action']) {
+/* Solo se subrayan los enlaces dentro de un texto; las tarjetas completas que son
+   enlaces (como las de cursos) se distinguen por su borde. */
+html[data-contrast='alto'] .student-page :is(p, li) a,
+html[data-contrast='alto'] .settings-nav a,
+html[data-contrast='alto'] .student-back-link {
   text-decoration: underline;
 }
 
