@@ -12,6 +12,8 @@ export default function LessonQuizView({ quiz, onAnswered }: LessonQuizViewProps
   const [checked, setChecked] = useState(false)
 
   const isCorrect = selected === quiz.correct
+  // Las opciones solo se bloquean cuando ya acertó.
+  const locked = checked && isCorrect
 
   function check() {
     if (!selected) return
@@ -19,8 +21,10 @@ export default function LessonQuizView({ quiz, onAnswered }: LessonQuizViewProps
     onAnswered(selected === quiz.correct)
   }
 
-  function retry() {
-    setSelected(null)
+  function choose(value: string) {
+    if (locked) return
+    setSelected(value)
+    // Al elegir otra opción después de fallar, se oculta el aviso y puede volver a revisar.
     setChecked(false)
   }
 
@@ -47,8 +51,8 @@ export default function LessonQuizView({ quiz, onAnswered }: LessonQuizViewProps
               role="radio"
               aria-checked={isSelected}
               className={`onboarding-option text-start ${isSelected ? 'is-selected' : ''}`}
-              onClick={() => !checked && setSelected(option.value)}
-              disabled={checked && !isSelected}
+              onClick={() => choose(option.value)}
+              disabled={locked && !isSelected}
             >
               <span className="onboarding-option-label">
                 <code className="inline-code">{option.label}</code>
@@ -68,13 +72,8 @@ export default function LessonQuizView({ quiz, onAnswered }: LessonQuizViewProps
           <p>
             {isCorrect
               ? quiz.explanation
-              : 'Repasa los puntos clave de arriba y vuelve a intentarlo.'}
+              : 'Repasa los puntos clave de arriba y elige otra opción.'}
           </p>
-          {!isCorrect && (
-            <button type="button" className="callout-toggle mt-2" onClick={retry}>
-              Intentar de nuevo
-            </button>
-          )}
         </div>
       ) : (
         <button type="button" className="courses-cta mt-3" onClick={check} disabled={!selected}>
