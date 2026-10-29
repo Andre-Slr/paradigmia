@@ -654,6 +654,23 @@
   font-size: 16px !important;
 }
 
+.quiz-retry {
+  margin-top: 12px;
+  padding: 8px 22px;
+  border: 2px solid var(--bs-secondary);
+  border-radius: 999px;
+  background: var(--bs-white);
+  color: var(--bs-secondary);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.quiz-retry:hover {
+  background: var(--bs-secondary);
+  color: var(--bs-white);
+}
+
 .lesson-footer {
   display: flex;
   flex-wrap: wrap;

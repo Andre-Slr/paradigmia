@@ -12,8 +12,9 @@ export default function LessonQuizView({ quiz, onAnswered }: LessonQuizViewProps
   const [checked, setChecked] = useState(false)
 
   const isCorrect = selected === quiz.correct
-  // Las opciones solo se bloquean cuando ya acertó.
-  const locked = checked && isCorrect
+  // Al revisar la respuesta, las opciones se bloquean. Si falló, puede
+  // desbloquearlas con el botón "Intentar de nuevo".
+  const locked = checked
 
   function check() {
     if (!selected) return
@@ -24,7 +25,10 @@ export default function LessonQuizView({ quiz, onAnswered }: LessonQuizViewProps
   function choose(value: string) {
     if (locked) return
     setSelected(value)
-    // Al elegir otra opción después de fallar, se oculta el aviso y puede volver a revisar.
+  }
+
+  function retry() {
+    setSelected(null)
     setChecked(false)
   }
 
@@ -72,8 +76,13 @@ export default function LessonQuizView({ quiz, onAnswered }: LessonQuizViewProps
           <p>
             {isCorrect
               ? quiz.explanation
-              : 'Repasa los puntos clave de arriba y elige otra opción.'}
+              : 'Repasa los puntos clave de arriba y vuelve a intentarlo.'}
           </p>
+          {!isCorrect && (
+            <button type="button" className="quiz-retry" onClick={retry}>
+              Intentar de nuevo
+            </button>
+          )}
         </div>
       ) : (
         <button type="button" className="courses-cta mt-3" onClick={check} disabled={!selected}>
