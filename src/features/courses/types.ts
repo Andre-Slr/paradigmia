@@ -27,6 +27,8 @@ export type LessonBlock =
       type: 'table'
       headers: string[]
       rows: string[][]
+      /** Columnas (desde 0) que se muestran con formato de código. */
+      codeColumns?: number[]
     }
 
 export interface QuizOption {

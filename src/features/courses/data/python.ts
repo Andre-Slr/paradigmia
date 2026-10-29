@@ -76,6 +76,7 @@ export const pythonCourse: Course = {
         { type: 'heading', text: 'Tipos de datos básicos' },
         {
           type: 'table',
+          codeColumns: [0, 1],
           headers: ['Tipo', 'Ejemplo', '¿Para qué sirve?'],
           rows: [
             ['int', '10', 'Números enteros'],
@@ -150,6 +151,7 @@ export const pythonCourse: Course = {
         },
         {
           type: 'table',
+          codeColumns: [0, 2],
           headers: ['Operador', 'Significado', 'Ejemplo', 'Resultado'],
           rows: [
             ['==', 'Igual a', '5 == 5', 'True'],

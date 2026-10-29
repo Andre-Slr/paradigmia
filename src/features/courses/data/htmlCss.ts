@@ -43,6 +43,7 @@ export const htmlCssCourse: Course = {
         },
         {
           type: 'table',
+          codeColumns: [1],
           headers: ['Parte', 'Ejemplo', 'Función'],
           rows: [
             ['Etiqueta de apertura', '<p>', 'Indica dónde empieza el elemento'],
@@ -79,6 +80,7 @@ export const htmlCssCourse: Course = {
         { type: 'heading', text: 'Etiquetas más usadas' },
         {
           type: 'table',
+          codeColumns: [0],
           headers: ['Etiqueta', 'Para qué sirve'],
           rows: [
             ['<h1> a <h6>', 'Títulos, de mayor (h1) a menor importancia (h6)'],
@@ -150,6 +152,7 @@ export const htmlCssCourse: Course = {
         },
         {
           type: 'table',
+          codeColumns: [1],
           headers: ['Parte', 'Ejemplo', 'Función'],
           rows: [
             ['Selector', 'h1', 'Elige a qué elementos se aplica'],
@@ -170,6 +173,7 @@ export const htmlCssCourse: Course = {
         { type: 'heading', text: 'Selectores' },
         {
           type: 'table',
+          codeColumns: [1],
           headers: ['Selector', 'Se escribe', 'Afecta a'],
           rows: [
             ['De etiqueta', 'p', 'Todos los párrafos'],
