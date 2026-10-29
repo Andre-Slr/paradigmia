@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import AppShell from '@/components/layout/AppShell'
 import { languageIcons } from '@/features/onboarding/languageIcons'
+import { planCourse } from '@/features/adaptation/adaptation'
+import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
+import '@/features/adaptation/adaptation.css'
 import {
   buildCourseLearningSequence,
   createCourseEnrollment,
@@ -197,6 +200,13 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
   const normalizedLanguageKey = useMemo(() => normalizeLanguageKey(course?.language ?? null), [course?.language])
   const displayLevel = useMemo(() => normalizeLevel(course?.level ?? null), [course?.level])
   const durationLabel = useMemo(() => formatDuration(course?.duration_weeks ?? null), [course?.duration_weeks])
+
+  // Motor de adaptación, regla R5: punto de inicio según el diagnóstico.
+  const { profile: learnerProfile } = useLearnerProfile(user.id)
+  const coursePlan = useMemo(
+    () => (course ? planCourse(course, lessons, learnerProfile) : null),
+    [course, lessons, learnerProfile],
+  )
   const learningSequence = useMemo(() => {
     if (!course) {
       return []
@@ -395,6 +405,13 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
             <span>{lessons.length} disponibles</span>
           </div>
 
+          {coursePlan?.message && (
+            <div className="student-adaptive-note" role="note">
+              <span aria-hidden="true">🎯</span>
+              <span>{coursePlan.message}</span>
+            </div>
+          )}
+
           {lessons.length === 0 ? (
             <div className="student-empty-state">
               <h2>Contenido aún no disponible</h2>
@@ -404,6 +421,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
             <div className="student-course-lesson-list">
               {lessons.map((lesson, index) => {
                 const lessonIdentifier = lesson.slug ?? lesson.id
+                const tag = coursePlan?.tags[lesson.id]
 
                 return (
                   <Link
@@ -416,6 +434,11 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                       <strong>{lesson.title ?? `Lección ${index + 1}`}</strong>
                       <span>{lesson.objective ?? lesson.description ?? 'Objetivo no disponible.'}</span>
                     </div>
+                    {tag && (
+                      <span className={`student-lesson-tag is-${tag}`}>
+                        {tag === 'sugerida' ? 'Empieza aquí' : 'Repaso opcional'}
+                      </span>
+                    )}
                   </Link>
                 )
               })}
