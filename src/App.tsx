@@ -1,6 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import type { ReactElement } from 'react'
+import type { User } from '@supabase/supabase-js'
 import AuthPage from '@/features/auth/AuthPage'
 import { useAuth } from '@/features/auth/useAuth'
+import CoursePage from '@/features/courses/CoursePage'
+import CoursesPage from '@/features/courses/CoursesPage'
+import LessonPage from '@/features/courses/LessonPage'
 import DashboardPage from '@/features/dashboard/DashboardPage'
 import OnboardingPage from '@/features/onboarding/OnboardingPage'
 import { useOnboarding } from '@/features/onboarding/useOnboarding'
@@ -24,6 +29,13 @@ export default function App() {
     : status === 'completed'
       ? '/dashboard'
       : '/onboarding'
+
+  // Vistas que requieren sesión iniciada y el cuestionario inicial completado.
+  function privateRoute(render: (user: User) => ReactElement) {
+    if (!user) return <Navigate to="/login" replace />
+    if (status !== 'completed') return <Navigate to="/onboarding" replace />
+    return render(user)
+  }
 
   return (
     <Routes>
@@ -70,6 +82,12 @@ export default function App() {
             <DashboardPage user={user} onLogout={signOut} />
           )
         }
+      />
+      <Route path="/cursos" element={privateRoute((u) => <CoursesPage user={u} />)} />
+      <Route path="/cursos/:courseId" element={privateRoute((u) => <CoursePage user={u} />)} />
+      <Route
+        path="/cursos/:courseId/lecciones/:lessonId"
+        element={privateRoute((u) => <LessonPage user={u} />)}
       />
       <Route path="*" element={<Navigate to={home} replace />} />
     </Routes>
