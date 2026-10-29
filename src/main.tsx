@@ -4,6 +4,11 @@ import { BrowserRouter } from 'react-router-dom'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '@/styles/theme.css'
 import App from '@/App'
+import { applyPreferences, loadPreferences } from '@/features/settings/preferences'
+import '@/features/settings/settings.css'
+
+// Aplica tamaño de letra, contraste y animaciones guardados antes de mostrar la app.
+applyPreferences(loadPreferences(null))
 
 const basename = import.meta.env.BASE_URL.replace(/\/$/, '') || undefined
 

@@ -67,12 +67,17 @@ export default function Sidebar({ onLogout }: SidebarProps) {
           </div>
         </div>
 
-        <button type="button" className="student-nav-item is-disabled" disabled>
+        <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            `student-nav-item${isActive ? ' is-active' : ''}`
+          }
+        >
           <span className="student-nav-icon" aria-hidden="true">
             <img src={configIcon} alt="" />
           </span>
           <span>Configuración</span>
-        </button>
+        </NavLink>
       </div>
 
       <button type="button" className="student-logout" onClick={handleLogout}>

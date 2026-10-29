@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import AuthPage from '@/features/auth/AuthPage'
 import { useAuth } from '@/features/auth/useAuth'
@@ -9,11 +10,20 @@ import LessonPage from '@/features/courses/LessonPage'
 import MyCoursesPage from '@/features/courses/MyCoursesPage'
 import DashboardPage from '@/features/dashboard/DashboardPage'
 import OnboardingPage from '@/features/onboarding/OnboardingPage'
+import RetakeQuestionnairePage from '@/features/settings/RetakeQuestionnairePage'
+import SettingsPage from '@/features/settings/SettingsPage'
 import { useOnboarding } from '@/features/onboarding/useOnboarding'
+import { applyPreferences, loadPreferences } from '@/features/settings/preferences'
 
 export default function App() {
   const { user, loading, signIn, signUp, signOut } = useAuth()
   const { status, submit } = useOnboarding(user?.id)
+  const userId = user?.id
+
+  // Al iniciar sesión se aplican las preferencias de apariencia de ese usuario.
+  useEffect(() => {
+    if (userId) applyPreferences(loadPreferences(userId))
+  }, [userId])
 
   if (loading || (user && status === 'loading')) {
     return (
@@ -146,6 +156,30 @@ export default function App() {
             <Navigate to="/onboarding" replace />
           ) : (
             <DashboardPage user={user} onLogout={signOut} />
+          )
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          !user ? (
+            <Navigate to="/login" replace />
+          ) : status !== 'completed' ? (
+            <Navigate to="/onboarding" replace />
+          ) : (
+            <SettingsPage user={user} onLogout={signOut} />
+          )
+        }
+      />
+      <Route
+        path="/settings/questionnaire"
+        element={
+          !user ? (
+            <Navigate to="/login" replace />
+          ) : status !== 'completed' ? (
+            <Navigate to="/onboarding" replace />
+          ) : (
+            <RetakeQuestionnairePage onSubmit={submit} />
           )
         }
       />

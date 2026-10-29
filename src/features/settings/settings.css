@@ -1,0 +1,474 @@
+/*
+ * Configuración: preferencias que afectan a toda la plataforma y estilos de
+ * la página. Usa las variables de color de src/styles/student.css.
+ */
+
+/* ---------- Preferencias globales ---------- */
+
+/* Tamaño de letra: los textos usan rem, así que escalan con la raíz. */
+html[data-font-size='grande'] {
+  font-size: 112.5%;
+}
+
+html[data-font-size='muy-grande'] {
+  font-size: 125%;
+}
+
+/* Alto contraste: textos más oscuros, bordes marcados y enlaces subrayados. */
+html[data-contrast='alto'] {
+  --student-teal: #1f3a3b;
+  --student-olive: #3f4d1c;
+  --student-border: rgba(25, 53, 12, 0.6);
+  --bs-secondary: #1f3a3b;
+  --bs-secondary-rgb: 31, 58, 59;
+}
+
+/* Solo textos corridos: las etiquetas con texto blanco sobre fondo oscuro se respetan. */
+html[data-contrast='alto'] .student-page p,
+html[data-contrast='alto'] .student-page li {
+  color: var(--student-dark-green);
+}
+
+html[data-contrast='alto'] .student-page :is(article, section > div, a, button, input, select) {
+  border-color: rgba(25, 53, 12, 0.55);
+}
+
+/* Solo se subrayan los enlaces dentro de un texto; las tarjetas completas que son
+   enlaces (como las de cursos) se distinguen por su borde. */
+html[data-contrast='alto'] .student-page :is(p, li) a,
+html[data-contrast='alto'] .settings-nav a,
+html[data-contrast='alto'] .student-back-link {
+  text-decoration: underline;
+}
+
+html[data-contrast='alto'] :focus-visible {
+  outline: 3px solid var(--student-dark-green) !important;
+  outline-offset: 3px;
+}
+
+/* Reducir animaciones: sin transiciones ni movimientos. */
+html[data-motion='reducido'] *,
+html[data-motion='reducido'] *::before,
+html[data-motion='reducido'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+/* ---------- Página de Configuración ---------- */
+
+.settings-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.settings-hero {
+  min-height: 220px;
+}
+
+.settings-hero .student-dashboard-visual {
+  width: 240px;
+  height: 200px;
+}
+
+.settings-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.settings-nav a {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--student-border);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--student-dark-green);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.settings-nav a:hover {
+  background: var(--student-dark-green);
+  color: #fff;
+}
+
+.settings-card {
+  scroll-margin-top: 24px;
+  padding: 24px 26px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(25, 53, 12, 0.08);
+  box-shadow: 0 12px 25px rgba(25, 53, 12, 0.05);
+}
+
+.settings-card-head {
+  margin-bottom: 18px;
+}
+
+.settings-card-head h2 {
+  margin: 0 0 4px;
+  color: var(--student-dark-green);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+}
+
+.settings-card-head p {
+  margin: 0;
+  max-width: 62ch;
+  color: rgba(25, 53, 12, 0.75);
+  line-height: 1.6;
+}
+
+.settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  padding: 16px 0;
+  border-top: 1px solid rgba(25, 53, 12, 0.08);
+}
+
+.settings-row:first-of-type {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.settings-row-copy {
+  flex: 1 1 260px;
+}
+
+.settings-row-copy strong {
+  display: block;
+  color: var(--student-dark-green);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.05rem;
+}
+
+.settings-row-copy span {
+  color: rgba(25, 53, 12, 0.7);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+/* Selector de tamaño de letra */
+.settings-segmented {
+  display: inline-flex;
+  padding: 4px;
+  border-radius: 14px;
+  background: rgba(111, 169, 187, 0.18);
+}
+
+.settings-segmented button {
+  min-width: 64px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--student-dark-green);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.settings-segmented button[aria-pressed='true'] {
+  background: var(--student-dark-green);
+  color: #fff;
+}
+
+.settings-segmented .size-sample {
+  display: block;
+  margin-bottom: 3px;
+}
+
+.settings-segmented small {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+/* Interruptor */
+.settings-switch {
+  position: relative;
+  flex-shrink: 0;
+  width: 54px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(25, 53, 12, 0.2);
+  transition: background 0.2s ease;
+}
+
+.settings-switch::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(25, 53, 12, 0.25);
+  transition: transform 0.2s ease;
+}
+
+.settings-switch[aria-checked='true'] {
+  background: var(--student-olive);
+}
+
+.settings-switch[aria-checked='true']::after {
+  transform: translateX(24px);
+}
+
+.settings-page button:focus-visible,
+.settings-page a:focus-visible,
+.settings-page input:focus-visible {
+  outline: 3px solid rgba(111, 169, 187, 0.9);
+  outline-offset: 2px;
+}
+
+.settings-preview {
+  margin-top: 6px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  border: 1px dashed var(--student-border);
+  background: rgba(246, 241, 234, 0.8);
+}
+
+.settings-preview strong {
+  display: block;
+  font-family: 'Nunito', sans-serif;
+  color: var(--student-dark-green);
+}
+
+.settings-preview p {
+  margin: 4px 0 0;
+  color: rgba(25, 53, 12, 0.8);
+}
+
+/* Perfil de aprendizaje */
+.settings-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin: 0 0 18px;
+}
+
+.settings-fact {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(111, 169, 187, 0.14);
+}
+
+.settings-fact dt {
+  margin-bottom: 4px;
+  color: var(--student-teal);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.settings-fact dd {
+  margin: 0;
+  color: var(--student-dark-green);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.settings-confirm {
+  margin-top: 6px;
+  padding: 16px 18px;
+  border-left: 5px solid var(--student-olive);
+  border-radius: 14px;
+  background: rgba(104, 125, 49, 0.1);
+}
+
+.settings-confirm p {
+  margin: 0 0 12px;
+  color: var(--student-dark-green);
+  line-height: 1.55;
+}
+
+.settings-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.settings-message {
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.settings-message.is-success {
+  background: rgba(4, 120, 87, 0.12);
+  color: #04563f;
+}
+
+.settings-message.is-error {
+  background: rgba(185, 28, 28, 0.08);
+  color: #8f1515;
+}
+
+/* Cuenta */
+.settings-account {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.settings-avatar {
+  width: 96px;
+  height: 96px;
+  padding: 8px;
+  border-radius: 24px;
+  background: rgba(111, 169, 187, 0.18);
+  object-fit: contain;
+}
+
+.settings-form {
+  display: grid;
+  gap: 14px;
+  max-width: 520px;
+}
+
+.settings-form h3 {
+  margin: 8px 0 0;
+  color: var(--student-dark-green);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.settings-field {
+  display: grid;
+  gap: 6px;
+}
+
+.settings-field span {
+  color: var(--student-dark-green);
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.settings-field input {
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--student-border);
+  background: #fff;
+  color: var(--student-dark-green);
+}
+
+.settings-field input:read-only {
+  background: rgba(213, 211, 204, 0.4);
+}
+
+.settings-field small {
+  color: rgba(25, 53, 12, 0.65);
+}
+
+/* Mis datos */
+.settings-data {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.settings-data-group {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(246, 241, 234, 0.85);
+}
+
+.settings-data-group h3 {
+  margin: 0 0 10px;
+  color: var(--student-dark-green);
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.settings-data-group ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.settings-data-group li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 8px 0;
+  border-top: 1px solid rgba(25, 53, 12, 0.08);
+  font-size: 0.92rem;
+}
+
+.settings-data-group li:first-child {
+  border-top: 0;
+}
+
+.settings-data-group li strong {
+  color: var(--student-dark-green);
+}
+
+.settings-data-tag {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+.settings-data-tag.is-explicit {
+  background: rgba(104, 125, 49, 0.16);
+  color: #3f4d1c;
+}
+
+.settings-data-tag.is-implicit {
+  background: rgba(111, 169, 187, 0.25);
+  color: #1f3a3b;
+}
+
+.settings-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  margin: 0 0 14px;
+  color: rgba(25, 53, 12, 0.75);
+  font-size: 0.9rem;
+}
+
+/* Barra para salir del cuestionario repetido */
+.retake-bar {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  z-index: 20;
+}
+
+@media (max-width: 720px) {
+  .settings-hero .student-dashboard-visual {
+    display: none;
+  }
+
+  .settings-account {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-card {
+    padding: 20px;
+  }
+}
