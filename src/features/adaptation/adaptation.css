@@ -1,0 +1,127 @@
+/*
+ * Estilos de los elementos del motor de adaptación.
+ * Usa las variables de color definidas en src/styles/student.css.
+ */
+
+.student-reco-reasons {
+  margin: 0;
+  padding: 10px 12px;
+  list-style: none;
+  border-radius: 14px;
+  background: rgba(111, 169, 187, 0.16);
+  color: var(--student-dark-green);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.student-reco-reasons li + li {
+  margin-top: 4px;
+}
+
+.student-reco-reasons li::before {
+  content: '✓';
+  margin-right: 8px;
+  color: var(--student-olive);
+  font-weight: 800;
+}
+
+.student-reco-badge {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--student-olive);
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.student-catalog-card.is-recommended {
+  border: 2px solid rgba(104, 125, 49, 0.55);
+}
+
+.student-adaptive-note {
+  display: flex;
+  gap: 12px;
+  padding: 14px 18px;
+  border-left: 5px solid var(--student-sky);
+  border-radius: 16px;
+  background: rgba(111, 169, 187, 0.18);
+  color: var(--student-dark-green);
+  line-height: 1.5;
+}
+
+.student-lesson-tag {
+  flex-shrink: 0;
+  align-self: center;
+  margin-left: auto;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.76rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.student-lesson-tag.is-sugerida {
+  background: var(--student-olive);
+  color: #fff;
+}
+
+.student-lesson-tag.is-repaso {
+  background: var(--student-ice);
+  color: var(--student-teal);
+}
+
+.student-lesson-callout {
+  margin: 16px 0;
+  padding: 14px 18px;
+  border-left: 5px solid var(--student-sky);
+  border-radius: 14px;
+  background: rgba(111, 169, 187, 0.16);
+}
+
+.student-lesson-callout.is-tip {
+  border-left-color: var(--student-olive);
+  background: rgba(104, 125, 49, 0.1);
+}
+
+.student-lesson-callout.is-warning {
+  border-left-color: #b91c1c;
+  background: rgba(185, 28, 28, 0.07);
+}
+
+.student-lesson-callout strong {
+  display: block;
+  margin-bottom: 4px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.student-lesson-callout p {
+  margin: 0;
+}
+
+.student-callout-toggle {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--student-teal);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.student-callout-toggle:focus-visible {
+  outline: 3px solid rgba(111, 169, 187, 0.8);
+  outline-offset: 2px;
+}
+
+.student-course-lesson-panel .student-adaptive-note {
+  margin-bottom: 14px;
+}
+
+/* Dentro de la lección, el contenedor ya separa los bloques. */
+.student-lesson-body .student-lesson-callout {
+  margin: 0;
+}

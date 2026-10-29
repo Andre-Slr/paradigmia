@@ -12,20 +12,25 @@ const NIVEL_POR_EXPERIENCIA: Record<string, string> = {
 }
 
 export function useOnboarding(userId?: string) {
-  const [status, setStatus] = useState<OnboardingStatus>(
-    userId ? 'loading' : 'pending',
-  )
+  // Guardamos a qué usuario pertenece el estado. Mientras no coincida con el
+  // usuario actual, el estado es 'loading'; así App no redirige antes de tiempo
+  // (por ejemplo, al abrir directo una dirección como /cursos).
+  const [result, setResult] = useState<{
+    userId?: string
+    status: OnboardingStatus
+  }>({ status: 'pending' })
+
+  const status: OnboardingStatus = !userId
+    ? 'pending'
+    : result.userId === userId
+      ? result.status
+      : 'loading'
 
   useEffect(() => {
     let active = true
 
     async function load() {
-      if (!userId) {
-        setStatus('pending')
-        return
-      }
-
-      setStatus('loading')
+      if (!userId) return
 
       const { data, error } = await supabase
         .from('onboarding_responses')
@@ -36,11 +41,11 @@ export function useOnboarding(userId?: string) {
       if (!active) return
 
       if (error) {
-        setStatus('pending')
+        setResult({ userId, status: 'pending' })
         return
       }
 
-      setStatus(data?.completed_at ? 'completed' : 'pending')
+      setResult({ userId, status: data?.completed_at ? 'completed' : 'pending' })
     }
 
     void load()
@@ -77,7 +82,7 @@ export function useOnboarding(userId?: string) {
         if (profileError) return profileError.message
       }
 
-      setStatus('completed')
+      setResult({ userId, status: 'completed' })
       return null
     },
     [userId],
