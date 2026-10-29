@@ -13,6 +13,11 @@ import {
   type PublishedCourseRecord,
   type PublishedLessonRecord,
 } from './courseService'
+import LessonCallout from '@/features/adaptation/LessonCallout'
+import { isCalloutType } from '@/features/adaptation/calloutTypes'
+import { showBeginnerHelp } from '@/features/adaptation/adaptation'
+import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
+import '@/features/adaptation/adaptation.css'
 
 interface LessonPageProps {
   user: {
@@ -22,7 +27,7 @@ interface LessonPageProps {
   onLogout: () => Promise<string | null>
 }
 
-function normalizeContentBlocks(content: PublishedLessonRecord['content']): Array<{ type?: string; text?: string; language?: string }> {
+function normalizeContentBlocks(content: PublishedLessonRecord['content']): Array<{ type?: string; text?: string; language?: string; title?: string }> {
   if (!content) return []
 
   if (Array.isArray(content)) {
@@ -36,6 +41,7 @@ function normalizeContentBlocks(content: PublishedLessonRecord['content']): Arra
         type: typeof block?.type === 'string' ? block.type : 'paragraph',
         text,
         language: typeof block?.language === 'string' ? block.language : undefined,
+        title: typeof (block as { title?: unknown })?.title === 'string' ? (block as { title: string }).title : undefined,
       }
     })
   }
@@ -165,6 +171,8 @@ export default function LessonPage({ user, onLogout }: LessonPageProps) {
   }, [courseId, lessonId, user.id])
 
   const lessonBlocks = useMemo(() => normalizeContentBlocks(lesson?.content ?? null), [lesson])
+  // Motor de adaptación, regla R6: ayudas para principiantes abiertas o cerradas según el nivel.
+  const { profile: learnerProfile, loading: learnerLoading } = useLearnerProfile(user.id)
   const currentSequenceIndex = lesson ? lessonSequence.findIndex((item) => item.type === 'lesson' && item.id === lesson.id) : -1
   const previousStep = currentSequenceIndex > 0 ? lessonSequence[currentSequenceIndex - 1] ?? null : null
   const nextStep = currentSequenceIndex >= 0 ? lessonSequence[currentSequenceIndex + 1] ?? null : null
@@ -332,6 +340,19 @@ export default function LessonPage({ user, onLogout }: LessonPageProps) {
                     <pre key={key} className="student-lesson-code" style={{ whiteSpace: 'pre-wrap' }}>
                       <code>{block.text ?? ''}</code>
                     </pre>
+                  )
+                }
+
+                if (isCalloutType(block.type)) {
+                  if (learnerLoading) return null
+                  return (
+                    <LessonCallout
+                      key={key}
+                      type={block.type}
+                      title={block.title}
+                      text={block.text ?? ''}
+                      beginnerOpen={showBeginnerHelp(learnerProfile)}
+                    />
                   )
                 }
 
