@@ -4,6 +4,9 @@ import type { User } from '@supabase/supabase-js'
 import AppShell from '@/components/layout/AppShell'
 import { languageIcons } from '@/features/onboarding/languageIcons'
 import { getPublishedCourses, type PublishedCourseRecord } from './courseService'
+import { recommendCourses } from '@/features/adaptation/adaptation'
+import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
+import '@/features/adaptation/adaptation.css'
 
 interface CoursesPageProps {
   user: User
@@ -52,6 +55,7 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
   const [selectedLevel, setSelectedLevel] = useState<(typeof levelOptions)[number]>('Todos')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { profile: learnerProfile } = useLearnerProfile(user.id)
 
   useEffect(() => {
     let active = true
@@ -120,6 +124,15 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
       return matchesQuery && matchesLanguage && matchesLevel
     })
   }, [courses, query, selectedLanguage, selectedLevel])
+
+  // Motor de adaptación: motivos por curso recomendado (reglas R1 a R4).
+  const recommendationReasons = useMemo(() => {
+    const reasons = new Map<string, string[]>()
+    for (const { course, reasons: courseReasons, score } of recommendCourses(learnerProfile, courses)) {
+      if (score > 0) reasons.set(course.id, courseReasons)
+    }
+    return reasons
+  }, [learnerProfile, courses])
 
   async function handleLogout(): Promise<string | null> {
     return onLogout()
@@ -222,9 +235,14 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
               const courseSlug = course.slug
               const displayLevel = normalizeLevel(course.level)
               const durationLabel = formatDuration(course.duration_weeks)
+              const reasons = recommendationReasons.get(course.id)
 
               return (
-                <article className="student-catalog-card" key={course.id}>
+                <article
+                  className={`student-catalog-card ${reasons ? 'is-recommended' : ''}`}
+                  key={course.id}
+                >
+                  {reasons && <span className="student-reco-badge">Recomendado para ti</span>}
                   <div className="student-catalog-card-top">
                     <div className="student-language-icon" aria-label={course.language ?? 'curso'}>
                       <img src={languageIcons[languageKey]} alt={course.language ?? 'curso'} />
@@ -236,6 +254,14 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
                     <h2>{course.title}</h2>
                     <p>{course.description ?? 'Sin descripción disponible.'}</p>
                   </div>
+
+                  {reasons && (
+                    <ul className="student-reco-reasons" aria-label="Por qué te lo recomendamos">
+                      {reasons.map((reason) => (
+                        <li key={reason}>{reason}</li>
+                      ))}
+                    </ul>
+                  )}
 
                   <div className="student-catalog-meta">
                     {durationLabel && <span>{durationLabel}</span>}

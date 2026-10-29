@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import '@/styles/student.css'
+import '@/features/adaptation/adaptation.css'
 import AppShell from '@/components/layout/AppShell'
 import mascot from '@/assets/branding/mascota-estudiando.png'
 import hojasSuperiorIzquierda from '@/assets/decor/hojas-superior-izquierda.png'
@@ -14,7 +15,10 @@ import {
   getPublishedCourseById,
   getPublishedCourses,
   getUserEnrollments,
+  type PublishedCourseRecord,
 } from '@/features/courses/courseService'
+import { recommendCourses } from '@/features/adaptation/adaptation'
+import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
 
 interface DashboardPageProps {
   user: User
@@ -37,15 +41,18 @@ interface RecommendedCourseItem {
   level: string
   duration: string
   slug: string
+  reasons: string[]
 }
 
 export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
   const [error, setError] = useState('')
   const [recentCourses, setRecentCourses] = useState<RecentCourseItem[]>([])
-  const [recommendedCourses, setRecommendedCourses] = useState<RecommendedCourseItem[]>([])
+  // Cursos publicados en los que el estudiante aún no está inscrito.
+  const [availableCourses, setAvailableCourses] = useState<PublishedCourseRecord[]>([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const { profile } = useProfile(user.id)
+  const { profile: learnerProfile, loading: learnerLoading } = useLearnerProfile(user.id)
 
   useEffect(() => {
     let active = true
@@ -88,26 +95,12 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
           })
         )
 
-        const recommendedCourseData = publishedCourses
-          .filter((course) => !enrolledCourseIds.has(course.id))
-          .slice(0, 3)
-          .map((course) => ({
-            id: course.id,
-            title: course.title,
-            description: course.description ?? 'Curso publicado disponible para explorar.',
-            level: course.level ?? 'Principiante',
-            duration: course.duration_weeks
-              ? `${course.duration_weeks} semana${course.duration_weeks === 1 ? '' : 's'}`
-              : 'Sin duración definida',
-            slug: course.slug,
-          }))
-
         setRecentCourses(recentCourseData.filter(Boolean) as RecentCourseItem[])
-        setRecommendedCourses(recommendedCourseData)
+        setAvailableCourses(publishedCourses.filter((course) => !enrolledCourseIds.has(course.id)))
       } catch (loadError) {
         if (!active) return
         setRecentCourses([])
-        setRecommendedCourses([])
+        setAvailableCourses([])
         setError(
           loadError instanceof Error
             ? loadError.message
@@ -133,6 +126,25 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
     if (message) setError(message)
     return message
   }
+
+  // Motor de adaptación (reglas R1 a R4): elige hasta 3 cursos según el cuestionario inicial.
+  const recommendedCourses = useMemo<RecommendedCourseItem[]>(
+    () =>
+      recommendCourses(learnerProfile, availableCourses)
+        .slice(0, 3)
+        .map(({ course, reasons }) => ({
+          id: course.id,
+          title: course.title,
+          description: course.description ?? 'Curso publicado disponible para explorar.',
+          level: course.level ?? 'Principiante',
+          duration: course.duration_weeks
+            ? `${course.duration_weeks} semana${course.duration_weeks === 1 ? '' : 's'}`
+            : 'Sin duración definida',
+          slug: course.slug,
+          reasons,
+        })),
+    [learnerProfile, availableCourses],
+  )
 
   const nombre = profile?.nombre ?? user.user_metadata.nombre ?? user.email
   const continueLearningTarget = recentCourses.length > 0 ? '/my-courses' : '/courses'
@@ -191,7 +203,7 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
             </Link>
           </div>
 
-          {loading ? (
+          {loading || learnerLoading ? (
             <div className="student-empty-state">
               <h2>Cargando recomendaciones</h2>
               <p>Estamos consultando los cursos publicados y tu estado de inscripción.</p>
@@ -209,9 +221,17 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
                   <h3>{course.title}</h3>
                   <p>{course.description}</p>
 
+                  {course.reasons.length > 0 && (
+                    <ul className="student-reco-reasons" aria-label="Por qué te lo recomendamos">
+                      {course.reasons.map((reason) => (
+                        <li key={reason}>{reason}</li>
+                      ))}
+                    </ul>
+                  )}
+
                   <div className="student-course-meta">
                     <span>{course.duration}</span>
-                    <span className="student-inline-tag">Nuevo</span>
+                    <span className="student-inline-tag">Para ti</span>
                   </div>
                 </Link>
               ))}
