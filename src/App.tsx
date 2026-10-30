@@ -9,6 +9,7 @@ import ExamPage from '@/features/courses/ExamPage'
 import LessonPage from '@/features/courses/LessonPage'
 import MyCoursesPage from '@/features/courses/MyCoursesPage'
 import DashboardPage from '@/features/dashboard/DashboardPage'
+import LandingPage from '@/features/landingpage/LandingPage'
 import OnboardingPage from '@/features/onboarding/OnboardingPage'
 import RetakeQuestionnairePage from '@/features/settings/RetakeQuestionnairePage'
 import SettingsPage from '@/features/settings/SettingsPage'
@@ -25,7 +26,8 @@ export default function App() {
     if (userId) applyPreferences(loadPreferences(userId))
   }, [userId])
 
-  if (loading || (user && status === 'loading')) {
+  if (window.location.pathname !== '/' && 
+  (loading || (user && status === 'loading'))) {
     return (
       <main className="auth">
         <div className="d-flex flex-grow-1 align-items-center justify-content-center">
@@ -36,13 +38,18 @@ export default function App() {
   }
 
   const home = !user
-    ? '/login'
+    ? '/'
     : status === 'completed'
       ? '/dashboard'
       : '/onboarding'
 
   return (
     <Routes>
+       <Route
+      path="/"
+      element={<LandingPage />
+      }
+    />
       <Route
         path="/login"
         element={
