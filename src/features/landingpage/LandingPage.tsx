@@ -394,7 +394,7 @@ const LandingPage: React.FC = () => {
 
             <div className="col-md-6">
               <span className="fw-bold">
-                DevLearn
+                Paradigmia
               </span>
               <p className="text-body-secondary mb-0 small">
                 Aprende programación y desarrolla tu potencial.
@@ -403,7 +403,7 @@ const LandingPage: React.FC = () => {
 
             <div className="col-md-6 text-md-end">
               <small className="text-body-secondary">
-                © {new Date().getFullYear()} DevLearn. Todos los derechos reservados.
+                © {new Date().getFullYear()} Paradigmia. Todos los derechos reservados.
               </small>
             </div>
 
