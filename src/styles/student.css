@@ -16,7 +16,7 @@
   background: linear-gradient(180deg, #f6f1ea 0%, #f2efe9 100%);
   color: var(--student-dark-green);
   font-family: 'Inter', sans-serif;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .student-sidebar-wrapper {
@@ -177,7 +177,7 @@
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.5);
   box-shadow: inset 0 0 0 1px rgba(25, 53, 12, 0.04);
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .student-dashboard {
@@ -699,8 +699,21 @@
 
 .student-catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 18px;
+  align-items: stretch;
+}
+
+@media (max-width: 1100px) {
+  .student-catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .student-catalog-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .student-catalog-card {
@@ -853,6 +866,76 @@
   color: rgba(25, 53, 12, 0.7);
   max-width: 440px;
   line-height: 1.7;
+}
+
+.student-content-locked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  padding: 26px 18px;
+  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(104, 125, 49, 0.06), rgba(111, 169, 187, 0.08));
+  border: 1px solid rgba(25, 53, 12, 0.08);
+}
+
+.student-locked-banner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: min(720px, 100%);
+  padding: 26px 22px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.62);
+  border: 1px solid rgba(25, 53, 12, 0.08);
+  box-shadow: 0 12px 24px rgba(25, 53, 12, 0.04);
+  backdrop-filter: blur(4px);
+  opacity: 0.96;
+}
+
+.student-lock-badge {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: rgba(104, 125, 49, 0.1);
+  color: var(--student-dark-green);
+  font-size: 1.9rem;
+  flex-shrink: 0;
+}
+
+.student-lock-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-lock-copy h2 {
+  margin: 0;
+  color: var(--student-dark-green);
+  font-family: 'Nunito', sans-serif;
+  font-size: clamp(1.5rem, 2vw, 2.2rem);
+}
+
+.student-lock-copy p {
+  margin: 0;
+  color: rgba(25, 53, 12, 0.75);
+  line-height: 1.7;
+}
+
+.student-inline-confirmation {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: fit-content;
+  padding: 0.7rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(104, 125, 49, 0.08);
+  color: var(--student-dark-green);
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
 }
 
 .student-my-courses-page {

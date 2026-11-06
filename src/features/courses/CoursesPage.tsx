@@ -13,7 +13,30 @@ interface CoursesPageProps {
   onLogout: () => Promise<string | null>
 }
 
-const levelOptions = ['Todos', 'Principiante', 'Básico', 'Intermedio', 'Avanzado'] as const
+const levelOptions = ['Todos', 'Principiante', 'Intermedio', 'Avanzado'] as const
+
+function formatLanguageLabel(languageKey: string): string {
+  switch (languageKey) {
+    case 'python':
+      return 'Python'
+    case 'javascript':
+      return 'JavaScript'
+    case 'html':
+      return 'HTML'
+    case 'css':
+      return 'CSS'
+    case 'java':
+      return 'Java'
+    case 'php':
+      return 'PHP'
+    case 'cpp':
+      return 'C++'
+    case 'c':
+      return 'C'
+    default:
+      return languageKey ? languageKey.charAt(0).toUpperCase() + languageKey.slice(1) : 'Otro'
+  }
+}
 
 function normalizeLanguageKey(language: string | null): string {
   const normalized = (language ?? '').trim().toLowerCase()
@@ -35,8 +58,7 @@ function normalizeLanguageKey(language: string | null): string {
 function normalizeLevel(level: string | null): string {
   const normalized = (level ?? '').trim().toLowerCase()
 
-  if (normalized.includes('principiante') || normalized.includes('beginner')) return 'Principiante'
-  if (normalized.includes('básico') || normalized.includes('basic')) return 'Básico'
+  if (normalized.includes('principiante') || normalized.includes('beginner') || normalized.includes('básico') || normalized.includes('basic')) return 'Principiante'
   if (normalized.includes('intermedio') || normalized.includes('intermediate')) return 'Intermedio'
   if (normalized.includes('avanzado') || normalized.includes('advanced')) return 'Avanzado'
 
@@ -104,6 +126,12 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
     return ['Todos', ...uniqueLanguages]
   }, [courses])
 
+  const languageOptionLabels = useMemo(
+    () =>
+      Object.fromEntries(languageOptions.map((option) => [option, option === 'Todos' ? 'Todos' : formatLanguageLabel(option)])),
+    [languageOptions]
+  )
+
   const filteredCourses = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
 
@@ -170,7 +198,7 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
             <select value={selectedLanguage} onChange={(event) => setSelectedLanguage(event.target.value)}>
               {languageOptions.map((option) => (
                 <option key={option} value={option}>
-                  {option === 'Todos' ? 'Todos' : option}
+                  {languageOptionLabels[option]}
                 </option>
               ))}
             </select>

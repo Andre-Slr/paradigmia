@@ -450,17 +450,27 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
     )
   }
 
-  if (isBlockedByPrerequisite) {
+  if (!isEnrolled || isBlockedByPrerequisite) {
+    const lockedTitle = !isEnrolled ? 'Debes inscribirte para continuar' : 'Contenido bloqueado'
+    const lockedMessage = !isEnrolled
+      ? 'Necesitas inscribirte en este curso antes de responder sus actividades.'
+      : `Debes completar "${previousStep?.title ?? 'el contenido anterior'}" antes de acceder a esta actividad.`
+    const lockedActionLabel = !isEnrolled ? 'Volver al curso' : 'Volver al contenido anterior'
+    const lockedActionUrl = !isEnrolled ? `/courses/${course.slug}` : previousStep?.url ?? `/courses/${course.slug}`
+
     return (
       <AppShell onLogout={handleLogout}>
-        <div className="student-empty-state student-detail-empty">
-          <h2>Contenido bloqueado</h2>
-          <p>
-            Debes completar <strong>{previousStep?.title ?? 'el contenido anterior'}</strong> antes de acceder a esta actividad.
-          </p>
-          <Link to={previousStep?.url ?? `/courses/${course.slug}`} className="student-back-link">
-            Volver al contenido anterior
-          </Link>
+        <div className="student-content-locked">
+          <div className="student-locked-banner">
+            <div className="student-lock-badge" aria-hidden="true">🔒</div>
+            <div className="student-lock-copy">
+              <h2>{lockedTitle}</h2>
+              <p>{lockedMessage}</p>
+              <Link to={lockedActionUrl} className="student-back-link">
+                {lockedActionLabel}
+              </Link>
+            </div>
+          </div>
         </div>
       </AppShell>
     )
@@ -642,24 +652,6 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
             >
               {isSubmitting ? 'Enviando...' : 'Enviar actividad'}
             </button>
-
-            <button
-              type="button"
-              className="student-button-secondary"
-              onClick={() => {
-                setAnswers({})
-                setSubmitMessage(null)
-              }}
-              disabled={isSubmitting}
-            >
-              Limpiar respuestas
-            </button>
-          </div>
-        )}
-
-        {submitMessage && (
-          <div className="student-exam-result student-activity-summary" role="status">
-            <p>{submitMessage}</p>
           </div>
         )}
 
