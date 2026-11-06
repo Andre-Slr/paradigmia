@@ -288,17 +288,27 @@ export default function LessonPage({ user, onLogout }: LessonPageProps) {
     )
   }
 
-  if (isBlockedByPrerequisite) {
+  if (!isEnrolled || isBlockedByPrerequisite) {
+    const lockedTitle = !isEnrolled ? 'Debes inscribirte para continuar' : 'Contenido bloqueado'
+    const lockedMessage = !isEnrolled
+      ? 'Necesitas inscribirte en este curso antes de acceder a sus lecciones y actividades.'
+      : `Debes completar "${previousStep?.title ?? 'el contenido anterior'}" antes de acceder a esta lección.`
+    const lockedActionLabel = !isEnrolled ? 'Volver al curso' : 'Volver al contenido anterior'
+    const lockedActionUrl = !isEnrolled ? `/courses/${course.slug}` : previousStep?.url ?? `/courses/${course.slug}`
+
     return (
       <AppShell onLogout={handleLogout}>
-        <div className="student-empty-state student-detail-empty">
-          <h2>Contenido bloqueado</h2>
-          <p>
-            Debes completar <strong>{previousStep?.title ?? 'el contenido anterior'}</strong> antes de acceder a esta lección.
-          </p>
-          <Link to={previousStep?.url ?? `/courses/${course.slug}`} className="student-back-link">
-            Volver al contenido anterior
-          </Link>
+        <div className="student-content-locked">
+          <div className="student-locked-banner">
+            <div className="student-lock-badge" aria-hidden="true">🔒</div>
+            <div className="student-lock-copy">
+              <h2>{lockedTitle}</h2>
+              <p>{lockedMessage}</p>
+              <Link to={lockedActionUrl} className="student-back-link">
+                {lockedActionLabel}
+              </Link>
+            </div>
+          </div>
         </div>
       </AppShell>
     )
@@ -362,35 +372,35 @@ export default function LessonPage({ user, onLogout }: LessonPageProps) {
           </div>
 
           <div className="student-lesson-actions">
-            {saveMessage && (
-              <p className={`student-lesson-save-message ${isCompleted || saveMessage.includes('correctamente') ? 'is-success' : 'is-error'}`}>
+            {!isCompleted && saveMessage && (
+              <p className={`student-lesson-save-message ${saveMessage.includes('correctamente') ? 'is-success' : 'is-error'}`}>
                 {saveMessage}
               </p>
             )}
 
-            <button
-              type="button"
-              className="student-catalog-action student-catalog-link"
-              onClick={() => void handleCompleteLesson()}
-              disabled={saving || !isEnrolled || isCompleted}
-            >
-              {saving ? 'Guardando...' : isCompleted ? 'Lección completada' : 'Marcar como completada'}
-            </button>
+            {isCompleted ? (
+              <>
+                <div className="student-inline-confirmation" role="status">
+                  <span aria-hidden="true">✓</span>
+                  <span>Lección completada</span>
+                </div>
 
-            {nextStep ? (
-              <Link
-                to={nextStep.url}
+                {nextStep ? (
+                  <Link to={nextStep.url} className="student-catalog-action student-catalog-link">
+                    Continuar
+                  </Link>
+                ) : null}
+              </>
+            ) : (
+              <button
+                type="button"
                 className="student-catalog-action student-catalog-link"
-                onClick={(event) => {
-                  if (!isCompleted) {
-                    event.preventDefault()
-                  }
-                }}
-                aria-disabled={!isCompleted}
+                onClick={() => void handleCompleteLesson()}
+                disabled={saving || !isEnrolled || isCompleted}
               >
-                {isCompleted ? `Siguiente: ${nextStep.title}` : 'Completa la lección para continuar'}
-              </Link>
-            ) : null}
+                {saving ? 'Guardando...' : 'Marcar como completada'}
+              </button>
+            )}
           </div>
         </article>
       </div>
