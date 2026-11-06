@@ -14,6 +14,17 @@ export interface SignUpResult {
   sessionCreated: boolean
 }
 
+function translateAuthError(message: string): string {
+  switch (message) {
+    case 'Invalid login credentials':
+      return 'Correo o contraseña incorrectos.'
+    case 'Email not confirmed':
+      return 'Revisa tu correo para confirmar tu cuenta antes de iniciar sesión.'
+    default:
+      return message
+  }
+}
+
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -46,7 +57,8 @@ export function useAuth() {
 
   async function signIn(email: string, password: string): Promise<string | null> {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
-    return error ? error.message : null
+    if (!error) return null
+    return translateAuthError(error.message)
   }
 
   async function signUp(data: SignUpData): Promise<SignUpResult> {

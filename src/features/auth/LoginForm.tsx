@@ -18,8 +18,13 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
 
     const normalizedEmail = email.trim()
 
-    if (!normalizedEmail || !password) {
-      setError('Escribe tu usuario/correo y contraseña.')
+    if (!normalizedEmail) {
+      setError('Escribe tu correo.')
+      return
+    }
+
+    if (!password) {
+      setError('Escribe tu contraseña.')
       return
     }
 
