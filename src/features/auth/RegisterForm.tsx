@@ -65,51 +65,76 @@ export default function RegisterForm({ onSignUp }: RegisterFormProps) {
   return (
     <>
       <form className="d-grid gap-3" onSubmit={handleSubmit}>
-        <input
-          type="text"
-          className="form-control"
-          value={fullName}
-          onChange={(event) => setFullName(event.target.value)}
-          placeholder="Nombre"
-          autoComplete="name"
-          aria-label="Nombre"
-        />
-        <input
-          type="email"
-          className="form-control"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="Correo electrónico"
-          autoComplete="email"
-          aria-label="Correo electrónico"
-        />
-        <input
-          type="text"
-          className="form-control"
-          value={username}
-          onChange={(event) => setUsername(event.target.value)}
-          placeholder="Nombre de usuario"
-          autoComplete="username"
-          aria-label="Nombre de usuario"
-        />
-        <input
-          type="password"
-          className="form-control"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          placeholder="Contraseña"
-          autoComplete="new-password"
-          aria-label="Contraseña"
-        />
-        <input
-          type="password"
-          className="form-control"
-          value={confirmPassword}
-          onChange={(event) => setConfirmPassword(event.target.value)}
-          placeholder="Confirmar contraseña"
-          autoComplete="new-password"
-          aria-label="Confirmar contraseña"
-        />
+        <div className="form-field">
+          <label htmlFor="register-fullname" className="form-label">
+            Nombre completo
+          </label>
+          <input
+            id="register-fullname"
+            type="text"
+            className="form-control"
+            value={fullName}
+            onChange={(event) => setFullName(event.target.value)}
+            placeholder="Tu nombre completo"
+            autoComplete="name"
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="register-email" className="form-label">
+            Correo
+          </label>
+          <input
+            id="register-email"
+            type="email"
+            className="form-control"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="ejemplo@gmail.com"
+            autoComplete="email"
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="register-username" className="form-label">
+            Nombre de usuario
+          </label>
+          <input
+            id="register-username"
+            type="text"
+            className="form-control"
+            value={username}
+            onChange={(event) => setUsername(event.target.value)}
+            placeholder="usuario123"
+            autoComplete="username"
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="register-password" className="form-label">
+            Contraseña
+          </label>
+          <input
+            id="register-password"
+            type="password"
+            className="form-control"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="*****"
+            autoComplete="new-password"
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="register-confirm-password" className="form-label">
+            Confirmar contraseña
+          </label>
+          <input
+            id="register-confirm-password"
+            type="password"
+            className="form-control"
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            placeholder="*****"
+            autoComplete="new-password"
+          />
+        </div>
 
         {error && (
           <div className="alert alert-danger py-2 mb-0" role="alert">

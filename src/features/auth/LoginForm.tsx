@@ -36,24 +36,34 @@ export default function LoginForm({ onSignIn }: LoginFormProps) {
   return (
     <>
       <form className="d-grid gap-3" onSubmit={handleSubmit}>
-        <input
-          type="email"
-          className="form-control"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-          placeholder="Usuario / correo"
-          autoComplete="username"
-          aria-label="Usuario o correo"
-        />
-        <input
-          type="password"
-          className="form-control"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          placeholder="Contraseña"
-          autoComplete="current-password"
-          aria-label="Contraseña"
-        />
+        <div className="form-field">
+          <label htmlFor="login-email" className="form-label">
+            Correo
+          </label>
+          <input
+            id="login-email"
+            type="email"
+            className="form-control"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            placeholder="ejemplo@gmail.com"
+            autoComplete="username"
+          />
+        </div>
+        <div className="form-field">
+          <label htmlFor="login-password" className="form-label">
+            Contraseña
+          </label>
+          <input
+            id="login-password"
+            type="password"
+            className="form-control"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="*****"
+            autoComplete="current-password"
+          />
+        </div>
 
         {error && (
           <div className="alert alert-danger py-2 mb-0" role="alert">
