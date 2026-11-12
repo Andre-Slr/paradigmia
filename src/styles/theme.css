@@ -66,11 +66,80 @@ h1, h2, h3, h4, h5, h6, nav {
   background: var(--bs-body-bg);
 }
 
-.auth-visual {
-  background: var(--bs-light);
+.auth-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px;
+  background: #FFFFFF;
+  border-bottom: 1px solid rgba(25, 53, 12, 0.08);
+}
+
+.auth-navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.auth-navbar-brand img {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+.auth-navbar-back {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--bs-secondary);
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.auth-navbar-back:hover {
+  color: var(--bs-primary);
+}
+
+.auth-hero {
+  position: relative;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  padding: 48px 24px;
+  background: linear-gradient(
+    135deg,
+    rgba(111, 169, 187, 0.2),
+    rgba(64, 103, 104, 0.12),
+    rgba(104, 125, 49, 0.12)
+  );
+}
+
+.auth-hero-visual {
+  position: absolute;
+  right: 3%;
+  bottom: 3%;
+  z-index: 0;
+  width: 240px;
+  pointer-events: none;
+  opacity: 0.95;
+}
+
+.auth-hero-visual img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 18px 14px rgba(25, 53, 12, 0.12));
+}
+
+@media (max-width: 720px) {
+  .auth-hero-visual {
+    display: none;
+  }
 }
 
 .brand-icon {
@@ -86,27 +155,48 @@ h1, h2, h3, h4, h5, h6, nav {
   font-family: 'Nunito', sans-serif;
 }
 
-.auth-form-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 28px;
-}
-
 .auth-form {
+  position: relative;
+  z-index: 1;
   width: 100%;
-  max-width: 340px;
-  border-radius: 10px;
+  max-width: 360px;
+  border-radius: 20px;
   padding: 32px;
   background: #FFFFFF;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 18px 40px rgba(25, 53, 12, 0.1);
+  animation: auth-form-in 0.32s ease;
 }
 
-.auth-form .brand-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  font-size: 25px;
+@keyframes auth-form-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.auth-form-title {
+  margin: 0 0 20px;
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--bs-body-color);
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  margin: 0;
+  color: var(--bs-body-color);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
 }
 
 .subtitle {
