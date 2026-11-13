@@ -8,6 +8,7 @@
  */
 import { questions } from '@/features/onboarding/questions'
 import type { Answers } from '@/features/onboarding/types'
+import { runJsonAdaptationEngine } from './ruleInterpreter'
 
 export type Nivel = 'principiante' | 'basico' | 'intermedio' | 'avanzado'
 
@@ -27,6 +28,7 @@ export interface DiagnosticResult {
 
 export interface LearnerProfile {
   nivel: Nivel | null
+  experienciaAnswer: string | null
   intereses: string[]
   lenguaje: string | null
   diagnostico: DiagnosticResult | null
@@ -45,39 +47,6 @@ const NIVEL_POR_EXPERIENCIA: Record<string, Nivel> = {
   previos: 'intermedio',
   varios: 'avanzado',
 }
-
-const ORDEN_NIVEL: Nivel[] = ['principiante', 'basico', 'intermedio', 'avanzado']
-
-const NOMBRE_INTERES: Record<string, string> = {
-  web: 'las páginas web',
-  videojuegos: 'los videojuegos',
-  apps: 'las aplicaciones',
-  circuitos: 'los circuitos',
-  automatizacion: 'la automatización de tareas',
-}
-
-/** R2: lenguajes con los que se relaciona cada interés del cuestionario. */
-const LENGUAJES_POR_INTERES: Record<string, string[]> = {
-  web: ['html', 'css', 'javascript', 'php'],
-  videojuegos: ['python', 'javascript', 'cpp'],
-  apps: ['java', 'javascript', 'python'],
-  circuitos: ['c', 'cpp', 'python'],
-  automatizacion: ['python'],
-}
-
-export const NOMBRE_LENGUAJE: Record<string, string> = {
-  c: 'C',
-  cpp: 'C++',
-  python: 'Python',
-  java: 'Java',
-  css: 'CSS',
-  html: 'HTML',
-  php: 'PHP',
-  javascript: 'JavaScript',
-}
-
-/** Porcentaje del diagnóstico a partir del cual se considera que domina lo básico. */
-export const UMBRAL_DOMINIO = 0.8
 
 /** Convierte el lenguaje guardado en Supabase ("Python", "C++"...) a la clave del cuestionario. */
 export function normalizeLanguage(language: string | null): string | null {
@@ -99,12 +68,8 @@ export function normalizeNivel(level: string | null): Nivel {
   const value = (level ?? '').trim().toLowerCase()
   if (value.includes('avanz')) return 'avanzado'
   if (value.includes('interm')) return 'intermedio'
-  if (value.includes('básico') || value.includes('basico')) return 'basico'
+  if (value.includes('básico') || value.includes('basico') || value.includes('basic')) return 'basico'
   return 'principiante'
-}
-
-function esNivel(value: unknown): value is Nivel {
-  return typeof value === 'string' && ORDEN_NIVEL.includes(value as Nivel)
 }
 
 function sameAnswer(answer: unknown, correct: string | string[]): boolean {
@@ -143,76 +108,29 @@ export function buildLearnerProfile(
   const nivelDerivado = NIVEL_POR_EXPERIENCIA[experiencia]
 
   return {
-    nivel: esNivel(nivelGuardado) ? nivelGuardado : nivelDerivado ?? null,
+    nivel: nivelGuardado ? normalizeNivel(nivelGuardado) : nivelDerivado ?? null,
+    experienciaAnswer: experiencia || null,
     intereses: Array.isArray(answers?.intereses) ? answers.intereses : [],
     lenguaje: typeof answers?.lenguaje === 'string' ? answers.lenguaje : null,
     diagnostico: answers ? scoreDiagnostic(answers) : null,
   }
 }
 
-/** R2, R3 y R4: decide qué cursos recomendar y explica por qué. */
+/** R1–R4: decide qué cursos recomendar y explica por qué. */
 export function recommendCourses<C extends AdaptableCourse>(
   profile: LearnerProfile,
   catalog: C[],
 ): Recommendation<C>[] {
-  const nivelUsuario = ORDEN_NIVEL.indexOf(profile.nivel ?? 'principiante')
-  const recommendations: Recommendation<C>[] = []
+  const { recommendedCourses } = runJsonAdaptationEngine({
+    experienceAnswer: profile.experienciaAnswer,
+    initialLevel: profile.nivel,
+    interests: profile.intereses,
+    preferredLanguage: profile.lenguaje,
+    diagnosticScore: null,
+    courses: catalog,
+  })
 
-  for (const course of catalog) {
-    const lenguaje = normalizeLanguage(course.language)
-    const reasons: string[] = []
-    let score = 0
-
-    // R4 · Nivel: no se recomiendan cursos más de un nivel por encima.
-    const gap = ORDEN_NIVEL.indexOf(normalizeNivel(course.level)) - nivelUsuario
-    if (gap > 1) continue
-
-    // R2 · Intereses: solo se preguntan a quien apenas empieza.
-    for (const interes of profile.intereses) {
-      if (lenguaje && LENGUAJES_POR_INTERES[interes]?.includes(lenguaje)) {
-        reasons.push(`Te interesan ${NOMBRE_INTERES[interes] ?? interes}`)
-        score += 2
-      }
-    }
-
-    // R3 · Lenguaje elegido en el cuestionario.
-    if (profile.lenguaje && lenguaje === profile.lenguaje) {
-      reasons.push(`Elegiste aprender ${NOMBRE_LENGUAJE[profile.lenguaje] ?? profile.lenguaje}`)
-      score += 3
-    }
-
-    if (score === 0) continue
-
-    if (gap >= -1) {
-      reasons.push('Va de acuerdo con tu nivel')
-      score += 1
-    } else {
-      reasons.push('Te sirve como repaso de los fundamentos')
-    }
-
-    recommendations.push({ course, reasons, score })
-  }
-
-  // R4 (respaldo) · Si nada coincidió, por ejemplo porque el lenguaje elegido
-  // aún no tiene curso, se recomiendan los cursos de nivel inicial.
-  if (recommendations.length === 0) {
-    const pendiente = profile.lenguaje ? NOMBRE_LENGUAJE[profile.lenguaje] : null
-    for (const course of catalog) {
-      if (ORDEN_NIVEL.indexOf(normalizeNivel(course.level)) > 1) continue
-      recommendations.push({
-        course,
-        reasons: [
-          pendiente
-            ? `Mientras preparamos el curso de ${pendiente}, este te da bases que te servirán`
-            : 'Es un buen punto de partida para empezar a programar',
-        ],
-        score: 0,
-      })
-    }
-  }
-
-  // El orden del catálogo se respeta entre cursos con el mismo puntaje.
-  return recommendations.sort((a, b) => b.score - a.score)
+  return recommendedCourses
 }
 
 export type LessonTag = 'repaso' | 'sugerida'
@@ -241,8 +159,23 @@ export function planCourse(
 
   if (!first) return { startLessonId: null, tags: {}, message: null }
 
-  if (diag && second && normalizeLanguage(course.language) === diag.lenguaje) {
-    if (diag.aciertos / diag.total >= UMBRAL_DOMINIO) {
+  const matchingDiagnostic =
+    diag !== null &&
+    diag.total > 0 &&
+    normalizeLanguage(course.language) === normalizeLanguage(diag.lenguaje)
+  const diagnosticScore =
+    diag && matchingDiagnostic ? (diag.aciertos / diag.total) * 10 : null
+  const { suggestedStartLesson } = runJsonAdaptationEngine({
+    experienceAnswer: profile.experienciaAnswer,
+    initialLevel: profile.nivel,
+    interests: profile.intereses,
+    preferredLanguage: profile.lenguaje,
+    diagnosticScore,
+    courses: [course],
+  })
+
+  if (diag && matchingDiagnostic && second) {
+    if (suggestedStartLesson === 2) {
       return {
         startLessonId: second.id,
         tags: { [first.id]: 'repaso', [second.id]: 'sugerida' },
@@ -265,5 +198,12 @@ export function planCourse(
  * para abrirlos) a quien ya tiene experiencia.
  */
 export function showBeginnerHelp(profile: LearnerProfile): boolean {
-  return profile.nivel === null || profile.nivel === 'principiante' || profile.nivel === 'basico'
+  return runJsonAdaptationEngine({
+    experienceAnswer: profile.experienciaAnswer,
+    initialLevel: profile.nivel,
+    interests: profile.intereses,
+    preferredLanguage: profile.lenguaje,
+    diagnosticScore: null,
+    courses: [],
+  }).openHintsByDefault
 }
