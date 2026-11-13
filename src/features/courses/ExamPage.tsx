@@ -62,11 +62,6 @@ export default function ExamPage({ user, onLogout }: ExamPageProps) {
     const routeCourseId = courseId ?? ''
 
     if (!routeCourseId) {
-      setCourse(null)
-      setExam(null)
-      setQuestions([])
-      setLoading(false)
-      setError('No se recibió una referencia válida del examen.')
       return
     }
 
@@ -297,6 +292,20 @@ export default function ExamPage({ user, onLogout }: ExamPageProps) {
 
   async function handleLogout(): Promise<string | null> {
     return onLogout()
+  }
+
+  if (!courseId) {
+    return (
+      <AppShell onLogout={handleLogout}>
+        <div className="student-empty-state student-detail-empty">
+          <h2>No se pudo cargar el examen</h2>
+          <p>No se recibió una referencia válida del examen.</p>
+          <Link to="/courses" className="student-back-link">
+            Volver al catálogo
+          </Link>
+        </div>
+      </AppShell>
+    )
   }
 
   if (loading) {

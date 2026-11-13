@@ -74,21 +74,30 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
   const [lessons, setLessons] = useState<PublishedLessonRecord[]>([])
   const [assessments, setAssessments] = useState<PublishedAssessmentRecord[]>([])
   const [isEnrolled, setIsEnrolled] = useState(false)
+  const [enrollmentCourseId, setEnrollmentCourseId] = useState<string | null>(null)
   const [enrollmentLoading, setEnrollmentLoading] = useState(true)
   const [enrollmentSubmitting, setEnrollmentSubmitting] = useState(false)
   const [enrollmentError, setEnrollmentError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [continueLearningTarget, setContinueLearningTarget] = useState<string | null>(null)
+  const [continueLearningState, setContinueLearningState] = useState<{
+    courseId: string
+    target: string
+  } | null>(null)
   const [completedActivityIds, setCompletedActivityIds] = useState<string[]>([])
+  const currentIsEnrolled = Boolean(course && enrollmentCourseId === course.id && isEnrolled)
+  const currentEnrollmentLoading = Boolean(
+    course && (enrollmentCourseId !== course.id || enrollmentLoading),
+  )
+  const currentEnrollmentError =
+    course && enrollmentCourseId === course.id ? enrollmentError : null
+  const continueLearningTarget =
+    course && continueLearningState?.courseId === course.id
+      ? continueLearningState.target
+      : null
 
   useEffect(() => {
     if (!courseId) {
-      setCourse(null)
-      setLessons([])
-      setAssessments([])
-      setLoading(false)
-      setError('No se recibió una referencia válida del curso.')
       return
     }
 
@@ -148,9 +157,6 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
 
   useEffect(() => {
     if (!course || !user?.id) {
-      setIsEnrolled(false)
-      setEnrollmentLoading(false)
-      setEnrollmentError(null)
       return
     }
 
@@ -165,6 +171,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
         const existingEnrollment = await getCourseEnrollment(user.id, currentCourseId)
 
         if (!active) return
+        setEnrollmentCourseId(currentCourseId)
         setIsEnrolled(Boolean(existingEnrollment))
 
         if (existingEnrollment) {
@@ -176,6 +183,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
         }
       } catch (loadError) {
         if (!active) return
+        setEnrollmentCourseId(currentCourseId)
         setEnrollmentError(
           loadError instanceof Error
             ? loadError.message
@@ -216,8 +224,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
   }, [assessments, course, lessons])
 
   useEffect(() => {
-    if (!course || !user?.id || !isEnrolled) {
-      setContinueLearningTarget(null)
+    if (!course || !user?.id || !currentIsEnrolled) {
       return
     }
 
@@ -249,10 +256,16 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
           return !safeProgress.examPassed
         })
 
-        setContinueLearningTarget(nextStep?.url ?? `/courses/${currentCourseSlug}`)
+        setContinueLearningState({
+          courseId: currentCourseId,
+          target: nextStep?.url ?? `/courses/${currentCourseSlug}`,
+        })
       } catch {
         if (!active) return
-        setContinueLearningTarget(`/courses/${currentCourseSlug}`)
+        setContinueLearningState({
+          courseId: currentCourseId,
+          target: `/courses/${currentCourseSlug}`,
+        })
       }
     }
 
@@ -261,7 +274,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
     return () => {
       active = false
     }
-  }, [course, isEnrolled, learningSequence, user?.id])
+  }, [course, currentIsEnrolled, learningSequence, user?.id])
 
   const activities = useMemo(() => {
     return assessments.filter((assessment) => !isExamAssessment(assessment))
@@ -283,13 +296,16 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
 
       const existingEnrollment = await getCourseEnrollment(user.id, course.id)
       if (existingEnrollment) {
+        setEnrollmentCourseId(course.id)
         setIsEnrolled(true)
         return
       }
 
       await createCourseEnrollment(user.id, course.id)
+      setEnrollmentCourseId(course.id)
       setIsEnrolled(true)
     } catch (submitError) {
+      if (course) setEnrollmentCourseId(course.id)
       setEnrollmentError(
         submitError instanceof Error
           ? submitError.message
@@ -302,6 +318,20 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
 
   async function handleLogout(): Promise<string | null> {
     return onLogout()
+  }
+
+  if (!courseId) {
+    return (
+      <AppShell onLogout={handleLogout}>
+        <div className="student-empty-state student-detail-empty">
+          <h2>No se pudo cargar el curso</h2>
+          <p>No se recibió una referencia válida del curso.</p>
+          <Link to="/courses" className="student-back-link">
+            Volver al catálogo
+          </Link>
+        </div>
+      </AppShell>
+    )
   }
 
   if (loading) {
@@ -374,8 +404,8 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
             </div>
 
             <div className="student-course-enrollment-block">
-              {enrollmentError && <p className="student-form-error">{enrollmentError}</p>}
-              {isEnrolled && continueLearningTarget ? (
+              {currentEnrollmentError && <p className="student-form-error">{currentEnrollmentError}</p>}
+              {currentIsEnrolled && continueLearningTarget ? (
                 <Link to={continueLearningTarget} className="student-catalog-action student-catalog-link">
                   Continuar aprendizaje
                 </Link>
@@ -384,13 +414,13 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                   type="button"
                   className="student-catalog-action student-catalog-link"
                   onClick={() => void handleEnrollment()}
-                  disabled={enrollmentSubmitting || enrollmentLoading}
+                  disabled={enrollmentSubmitting || currentEnrollmentLoading}
                 >
                   {enrollmentSubmitting
                     ? 'Procesando...'
-                    : enrollmentLoading
+                    : currentEnrollmentLoading
                       ? 'Comprobando inscripción...'
-                      : isEnrolled
+                      : currentIsEnrolled
                         ? 'Ya estás inscrito'
                         : 'Inscribirme al curso'}
                 </button>

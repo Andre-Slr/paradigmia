@@ -27,7 +27,7 @@ export interface ActivityContent {
   questions: QuestionContent[]
 }
 
-export interface ExamQuestion extends QuestionContent {}
+export type ExamQuestion = QuestionContent
 
 export interface CourseModuleContent {
   lessons: LessonContent[]

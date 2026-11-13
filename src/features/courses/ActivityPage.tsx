@@ -69,12 +69,6 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
     const currentActivitySlug = activityId ?? ''
 
     if (!currentCourseSlug || !currentActivitySlug) {
-      setCourse(null)
-      setActivity(null)
-      setQuestions([])
-      setSequence([])
-      setLoading(false)
-      setError('No se recibió una referencia válida de la actividad.')
       return
     }
 
@@ -237,7 +231,6 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
   const nextStep = currentSequenceIndex >= 0 ? sequence[currentSequenceIndex + 1] ?? null : null
   useEffect(() => {
     if (!course || !user.id) {
-      setPreviousLessonCompleted(true)
       return
     }
 
@@ -246,7 +239,6 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
     const currentLessonPrerequisite = previousStep && previousStep.type === 'lesson' ? previousStep : null
 
     if (!currentCourse || !currentUserId || !currentLessonPrerequisite) {
-      setPreviousLessonCompleted(true)
       return
     }
 
@@ -284,13 +276,13 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
     }
   }, [course, previousStep, user.id])
 
-  const previousStepCompleted = previousStep
-    ? previousStep.type === 'lesson'
+  const previousStepCompleted = !course || !user.id || !previousStep
+    ? true
+    : previousStep.type === 'lesson'
       ? previousLessonCompleted
       : previousStep.type === 'activity'
         ? passedActivityIds.includes(previousStep.id)
         : examPassed
-    : true
   const isBlockedByPrerequisite = Boolean(previousStep) && !previousStepCompleted
 
   const handleOptionSelect = (questionId: string, optionId: string): void => {
@@ -395,6 +387,20 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  if (!courseId || !activityId) {
+    return (
+      <AppShell onLogout={handleLogout}>
+        <div className="student-empty-state student-detail-empty">
+          <h2>No se pudo cargar la actividad</h2>
+          <p>No se recibió una referencia válida de la actividad.</p>
+          <Link to="/courses" className="student-back-link">
+            Volver al catálogo
+          </Link>
+        </div>
+      </AppShell>
+    )
   }
 
   if (loading) {

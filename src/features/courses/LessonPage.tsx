@@ -73,11 +73,6 @@ export default function LessonPage({ user, onLogout }: LessonPageProps) {
     const currentLessonSlug = lessonId ?? ''
 
     if (!currentCourseSlug || !currentLessonSlug) {
-      setCourse(null)
-      setLesson(null)
-      setLessonSequence([])
-      setLoading(false)
-      setError('No se recibió una referencia válida de la lección.')
       return
     }
 
@@ -233,6 +228,20 @@ export default function LessonPage({ user, onLogout }: LessonPageProps) {
     } finally {
       setSaving(false)
     }
+  }
+
+  if (!courseId || !lessonId) {
+    return (
+      <AppShell onLogout={handleLogout}>
+        <div className="student-empty-state student-detail-empty">
+          <h2>No se pudo cargar la lección</h2>
+          <p>No se recibió una referencia válida de la lección.</p>
+          <Link to="/courses" className="student-back-link">
+            Volver al catálogo
+          </Link>
+        </div>
+      </AppShell>
+    )
   }
 
   if (loading) {
