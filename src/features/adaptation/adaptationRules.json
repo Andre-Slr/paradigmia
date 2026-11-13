@@ -1,0 +1,212 @@
+{
+  "version": "1.0.0",
+  "rules": [
+    {
+      "id": "R1",
+      "name": "Nivel del estudiante",
+      "category": "perfil",
+      "priority": 100,
+      "enabled": true,
+      "dataInputs": [5, 36],
+      "condition": { "field": "experienceAnswer", "operator": "exists" },
+      "action": {
+        "type": "SET_LEVEL",
+        "mapping": {
+          "Apenas estoy empezando": "principiante",
+          "Sé lo básico": "básico",
+          "Tengo conocimientos previos": "intermedio",
+          "Conozco varios lenguajes": "avanzado"
+        },
+        "default": "principiante"
+      }
+    },
+    {
+      "id": "R2",
+      "name": "Recomendación por intereses",
+      "category": "recomendacion",
+      "priority": 80,
+      "enabled": true,
+      "dataInputs": [6, 38],
+      "condition": { "field": "interests", "operator": "not_empty" },
+      "action": {
+        "type": "SCORE_COURSE_BY_INTEREST",
+        "points": 2,
+        "interestMap": {
+          "videojuegos": ["Python", "JavaScript", "C++"],
+          "web": ["HTML", "CSS", "JavaScript", "PHP"],
+          "apps": ["Java", "JavaScript", "Python"],
+          "circuitos": ["C", "C++", "Python"],
+          "automatización": ["Python", "JavaScript"]
+        }
+      }
+    },
+    {
+      "id": "R3",
+      "name": "Recomendación por lenguaje",
+      "category": "recomendacion",
+      "priority": 85,
+      "enabled": true,
+      "dataInputs": [7, 38],
+      "condition": { "field": "preferredLanguage", "operator": "exists" },
+      "action": {
+        "type": "SCORE_COURSE_BY_LANGUAGE",
+        "points": 3
+      }
+    },
+    {
+      "id": "R4",
+      "name": "Cursos acordes al nivel",
+      "category": "recomendacion",
+      "priority": 90,
+      "enabled": true,
+      "dataInputs": [36, 38],
+      "condition": { "field": "computedLevel", "operator": "exists" },
+      "action": {
+        "type": "FILTER_COURSE_LEVEL",
+        "maxLevelDelta": 1,
+        "fallbackLevel": "principiante"
+      }
+    },
+    {
+      "id": "R5",
+      "name": "Punto de inicio según el diagnóstico",
+      "category": "ruta",
+      "priority": 75,
+      "enabled": true,
+      "dataInputs": [8, 37],
+      "condition": { "field": "diagnosticScore", "operator": ">=", "value": 8 },
+      "action": {
+        "type": "SET_START_LESSON",
+        "onTrue": 2,
+        "onFalse": 1
+      }
+    },
+    {
+      "id": "R6",
+      "name": "Ayudas según el nivel",
+      "category": "interfaz",
+      "priority": 70,
+      "enabled": true,
+      "dataInputs": [36],
+      "condition": {
+        "field": "computedLevel",
+        "operator": "in",
+        "value": ["principiante", "básico"]
+      },
+      "action": {
+        "type": "SET_HINTS_VISIBILITY",
+        "onTrue": true,
+        "onFalse": false
+      }
+    },
+    {
+      "id": "R7",
+      "name": "Avance en el curso",
+      "category": "ruta",
+      "priority": 60,
+      "enabled": true,
+      "dataInputs": [39, 40, 45],
+      "condition": { "field": "nextStepInCourse", "operator": "exists" },
+      "action": { "type": "ENABLE_NEXT_STEP" }
+    },
+    {
+      "id": "R8",
+      "name": "Repaso por intentos",
+      "category": "ruta",
+      "priority": 95,
+      "enabled": true,
+      "dataInputs": [41, 40],
+      "condition": { "field": "maxFailedAttempts", "operator": ">=", "value": 3 },
+      "action": {
+        "type": "FORCE_REVIEW_STEP",
+        "overridesSessionBudget": true
+      }
+    },
+    {
+      "id": "R9",
+      "name": "Sesión corta",
+      "category": "sesion",
+      "priority": 50,
+      "enabled": true,
+      "dataInputs": [13],
+      "condition": { "field": "sessionTimeBudget", "operator": "==", "value": "<10" },
+      "action": {
+        "type": "SET_SESSION_STEPS",
+        "maxSteps": 1,
+        "plan": ["next_single_step"]
+      }
+    },
+    {
+      "id": "R10",
+      "name": "Sesión media",
+      "category": "sesion",
+      "priority": 50,
+      "enabled": true,
+      "dataInputs": [13],
+      "condition": { "field": "sessionTimeBudget", "operator": "==", "value": "10-20" },
+      "action": {
+        "type": "SET_SESSION_STEPS",
+        "maxSteps": 2,
+        "plan": ["lesson", "activity"]
+      }
+    },
+    {
+      "id": "R11",
+      "name": "Sesión extendida",
+      "category": "sesion",
+      "priority": 50,
+      "enabled": true,
+      "dataInputs": [13],
+      "condition": { "field": "sessionTimeBudget", "operator": "==", "value": ">20" },
+      "action": {
+        "type": "SET_SESSION_STEPS",
+        "maxSteps": 3,
+        "plan": ["lesson", "activity", "next_lesson_or_exam"]
+      }
+    },
+    {
+      "id": "R12",
+      "name": "Horario nocturno",
+      "category": "interfaz",
+      "priority": 40,
+      "enabled": true,
+      "dataInputs": [26, 28, 30],
+      "condition": {
+        "field": "localHour",
+        "operator": "outside_range",
+        "value": [6, 20]
+      },
+      "action": {
+        "type": "ENABLE_NIGHT_MODE",
+        "respectUserOverride": true
+      }
+    },
+    {
+      "id": "R13",
+      "name": "Conexión débil",
+      "category": "rendimiento",
+      "priority": 90,
+      "enabled": true,
+      "dataInputs": [29],
+      "condition": { "field": "isWeakConnection", "operator": "==", "value": true },
+      "action": {
+        "type": "ENABLE_LITE_MODE",
+        "hideDecorativeFoliage": true,
+        "showSubmissionWarning": true
+      }
+    },
+    {
+      "id": "R14",
+      "name": "Inactividad",
+      "category": "sesion",
+      "priority": 85,
+      "enabled": true,
+      "dataInputs": [49, 48],
+      "condition": { "field": "inactiveMinutes", "operator": ">=", "value": 7 },
+      "action": {
+        "type": "PAUSE_STUDY_TIMER",
+        "message": "¿Sigues ahí?"
+      }
+    }
+  ]
+}
