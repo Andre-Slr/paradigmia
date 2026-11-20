@@ -15,7 +15,7 @@ import {
 } from './courseService'
 import LessonCallout from '@/features/adaptation/LessonCallout'
 import { isCalloutType } from '@/features/adaptation/calloutTypes'
-import { showBeginnerHelp } from '@/features/adaptation/adaptation'
+import { pathForStudent, showBeginnerHelp } from '@/features/adaptation/adaptation'
 import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
 import '@/features/adaptation/adaptation.css'
 
@@ -168,9 +168,14 @@ export default function LessonPage({ user, onLogout }: LessonPageProps) {
   const lessonBlocks = useMemo(() => normalizeContentBlocks(lesson?.content ?? null), [lesson])
   // Motor de adaptación, regla R6: ayudas para principiantes abiertas o cerradas según el nivel.
   const { profile: learnerProfile, loading: learnerLoading } = useLearnerProfile(user.id)
-  const currentSequenceIndex = lesson ? lessonSequence.findIndex((item) => item.type === 'lesson' && item.id === lesson.id) : -1
-  const previousStep = currentSequenceIndex > 0 ? lessonSequence[currentSequenceIndex - 1] ?? null : null
-  const nextStep = currentSequenceIndex >= 0 ? lessonSequence[currentSequenceIndex + 1] ?? null : null
+  // R5: con diagnóstico alto, la lección 1 es repaso opcional y no bloquea la lección 2.
+  const studentPath = useMemo(
+    () => pathForStudent(lessonSequence, course, learnerProfile, lesson?.id),
+    [lessonSequence, course, learnerProfile, lesson?.id],
+  )
+  const currentSequenceIndex = lesson ? studentPath.findIndex((item) => item.type === 'lesson' && item.id === lesson.id) : -1
+  const previousStep = currentSequenceIndex > 0 ? studentPath[currentSequenceIndex - 1] ?? null : null
+  const nextStep = currentSequenceIndex >= 0 ? studentPath[currentSequenceIndex + 1] ?? null : null
 
   const previousStepCompleted = previousStep
     ? previousStep.type === 'lesson'

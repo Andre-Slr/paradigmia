@@ -21,7 +21,13 @@ import {
   type PublishedAssessmentRecord,
   type PublishedCourseRecord,
   type PublishedQuestionOptionRecord,
+  type AssessmentAttemptRecord,
 } from './courseService'
+import { findReviewStep } from '@/features/adaptation/ruleInterpreter'
+import { pathForStudent } from '@/features/adaptation/adaptation'
+import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
+import { useLiteMode } from '@/features/adaptation/useEnvironmentRules'
+import '@/features/adaptation/adaptation.css'
 
 interface ActivityPageProps {
   user: {
@@ -63,6 +69,11 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
   const [attemptReview, setAttemptReview] = useState<Record<string, AttemptReviewEntry>>({})
   const [revealedCorrectAnswers, setRevealedCorrectAnswers] = useState<Record<string, boolean>>({})
   const [reviewError, setReviewError] = useState<string | null>(null)
+  // R8: intentos de esta actividad, para pedir repaso tras 3 reprobados.
+  const [activityAttempts, setActivityAttempts] = useState<AssessmentAttemptRecord[]>([])
+  // R13: con conexión débil se avisa antes de enviar.
+  const { showSubmissionWarning } = useLiteMode()
+  const { profile: learnerProfile } = useLearnerProfile(user.id ?? '')
 
   useEffect(() => {
     const currentCourseSlug = courseId ?? ''
@@ -150,6 +161,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
 
         if (!active) return
         setIsEnrolled(Boolean(enrollment))
+        setActivityAttempts(relevantAttempts)
         setPassedActivityIds(academicProgress?.passedActivityIds ?? [])
         setExamPassed(Boolean(academicProgress?.examPassed))
         setLatestApprovedScore(bestValidAttempt?.score ?? null)
@@ -226,9 +238,21 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
     Object.keys(attemptReview).length > 0 ||
     Boolean(submitMessage && (submitMessage.includes('Calificación:') || submitMessage.includes('Aún no alcanzas')))
   )
-  const currentSequenceIndex = activity ? sequence.findIndex((item) => item.type === 'activity' && item.id === activity.id) : -1
-  const previousStep = currentSequenceIndex > 0 ? sequence[currentSequenceIndex - 1] ?? null : null
-  const nextStep = currentSequenceIndex >= 0 ? sequence[currentSequenceIndex + 1] ?? null : null
+  // R5: con diagnóstico alto, la lección 1 y su actividad no bloquean lo que sigue.
+  const studentPath = pathForStudent(sequence, course, learnerProfile, activity?.id)
+  const currentSequenceIndex = activity ? studentPath.findIndex((item) => item.type === 'activity' && item.id === activity.id) : -1
+  const previousStep = currentSequenceIndex > 0 ? studentPath[currentSequenceIndex - 1] ?? null : null
+  const nextStep = currentSequenceIndex >= 0 ? studentPath[currentSequenceIndex + 1] ?? null : null
+
+  // R8 · Repaso por intentos: solo cuenta esta actividad mientras no esté aprobada.
+  const reviewNeeded =
+    activity && !isActivityApproved
+      ? findReviewStep(
+          sequence.filter((step) => step.id === activity.id || step.type === 'lesson'),
+          { completedLessonIds: [], passedActivityIds: [], examPassed: false },
+          activityAttempts,
+        )
+      : null
   useEffect(() => {
     if (!course || !user.id) {
       return
@@ -350,6 +374,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
       const result = await submitAssessmentAnswers(activity.id, payload)
       const attempts = await getAssessmentAttemptsForEnrollment(enrollment.id, course?.id ?? '')
       const activityAttempts = attempts.filter((attempt) => attempt.assessment_id === activity.id)
+      setActivityAttempts(activityAttempts)
       const bestApprovedAttempt = activityAttempts
         .filter((attempt) => typeof attempt.score === 'number' && typeof activity.passing_score === 'number' && Number(attempt.score) >= Number(activity.passing_score))
         .sort((left, right) => Number(right.score ?? 0) - Number(left.score ?? 0))[0] ?? null
@@ -645,6 +670,24 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
                 </section>
               )
             })}
+          </div>
+        )}
+
+        {reviewNeeded && (
+          <div className="student-rule-warning" role="alert">
+            Llevas {reviewNeeded.failedAttempts} intentos sin aprobar esta actividad. Te recomendamos repasar{' '}
+            {reviewNeeded.lesson ? (
+              <Link to={reviewNeeded.lesson.url}>{reviewNeeded.lesson.title}</Link>
+            ) : (
+              'la lección'
+            )}{' '}
+            antes de volver a intentarlo.
+          </div>
+        )}
+
+        {!isActivityApproved && showSubmissionWarning && (
+          <div className="student-rule-warning" role="note">
+            Tu conexión está lenta. Al enviar, espera a que aparezca tu calificación antes de cerrar o recargar la página.
           </div>
         )}
 

@@ -4,10 +4,12 @@ import AppShell from '@/components/layout/AppShell'
 import { languageIcons } from '@/features/onboarding/languageIcons'
 import { planCourse } from '@/features/adaptation/adaptation'
 import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
+import { findNextStep, planStudySession, type SessionPlan } from '@/features/adaptation/ruleInterpreter'
 import '@/features/adaptation/adaptation.css'
 import {
   buildCourseLearningSequence,
   createCourseEnrollment,
+  getAssessmentAttemptsForEnrollment,
   getCourseAcademicProgressForEnrollment,
   getCourseEnrollment,
   getPublishedCourseAssessments,
@@ -83,6 +85,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
   const [continueLearningState, setContinueLearningState] = useState<{
     courseId: string
     target: string
+    sessionPlan: SessionPlan | null
   } | null>(null)
   const [completedActivityIds, setCompletedActivityIds] = useState<string[]>([])
   const currentIsEnrolled = Boolean(course && enrollmentCourseId === course.id && isEnrolled)
@@ -94,6 +97,10 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
   const continueLearningTarget =
     course && continueLearningState?.courseId === course.id
       ? continueLearningState.target
+      : null
+  const sessionPlan =
+    course && continueLearningState?.courseId === course.id
+      ? continueLearningState.sessionPlan
       : null
 
   useEffect(() => {
@@ -235,7 +242,12 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
     async function loadContinueSequence() {
       try {
         const enrollment = await getCourseEnrollment(user.id, currentCourseId)
-        const academicProgress = enrollment ? await getCourseAcademicProgressForEnrollment(enrollment.id, currentCourseId) : null
+        const [academicProgress, attempts] = enrollment
+          ? await Promise.all([
+              getCourseAcademicProgressForEnrollment(enrollment.id, currentCourseId),
+              getAssessmentAttemptsForEnrollment(enrollment.id, currentCourseId),
+            ])
+          : [null, []]
         if (!active) return
 
         const safeProgress: { completedLessonIds: string[]; passedActivityIds: string[]; examPassed: boolean } = academicProgress ?? {
@@ -244,27 +256,31 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
           examPassed: false,
         }
 
-        const nextStep = learningSequence.find((step) => {
-          if (step.type === 'lesson') {
-            return !safeProgress.completedLessonIds.includes(step.id)
-          }
+        // R5: si el diagnóstico permite saltar la primera lección, sus pasos quedan como repaso opcional.
+        const optionalLessonIds = new Set(
+          Object.entries(coursePlan?.tags ?? {})
+            .filter(([, tag]) => tag === 'repaso')
+            .map(([lessonId]) => lessonId),
+        )
+        const pathSequence = learningSequence.filter(
+          (step) => !step.lessonId || !optionalLessonIds.has(step.lessonId),
+        )
 
-          if (step.type === 'activity') {
-            return !safeProgress.passedActivityIds.includes(step.id)
-          }
-
-          return !safeProgress.examPassed
-        })
+        // R7: siguiente paso. R8–R11: plan de hoy según intentos y tiempo por sesión.
+        const nextStep = findNextStep(pathSequence, safeProgress)
+        const plan = planStudySession(pathSequence, safeProgress, attempts, learnerProfile.tiempoSesion)
 
         setContinueLearningState({
           courseId: currentCourseId,
-          target: nextStep?.url ?? `/courses/${currentCourseSlug}`,
+          target: plan.steps[0]?.url ?? nextStep?.url ?? `/courses/${currentCourseSlug}`,
+          sessionPlan: plan,
         })
       } catch {
         if (!active) return
         setContinueLearningState({
           courseId: currentCourseId,
           target: `/courses/${currentCourseSlug}`,
+          sessionPlan: null,
         })
       }
     }
@@ -274,7 +290,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
     return () => {
       active = false
     }
-  }, [course, currentIsEnrolled, learningSequence, user?.id])
+  }, [course, coursePlan, currentIsEnrolled, learningSequence, learnerProfile.tiempoSesion, user?.id])
 
   const activities = useMemo(() => {
     return assessments.filter((assessment) => !isExamAssessment(assessment))
@@ -434,6 +450,25 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
             <h2>Lecciones</h2>
             <span>{lessons.length} disponibles</span>
           </div>
+
+          {sessionPlan && sessionPlan.steps.length > 0 && (
+            <div
+              className={`student-session-plan ${sessionPlan.review ? 'is-review' : ''}`}
+              role="note"
+              aria-label="Tu plan para hoy"
+            >
+              <strong>{sessionPlan.review ? 'Repaso antes de continuar' : 'Tu plan para hoy'}</strong>
+              {sessionPlan.message && <p>{sessionPlan.message}</p>}
+              <ol>
+                {sessionPlan.steps.map((step) => (
+                  <li key={step.id}>
+                    <Link to={step.url}>{step.title}</Link>
+                    <span>{step.type === 'lesson' ? 'Lección' : step.type === 'activity' ? 'Actividad' : 'Examen'}</span>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
 
           {coursePlan?.message && (
             <div className="student-adaptive-note" role="note">

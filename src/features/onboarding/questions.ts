@@ -57,6 +57,19 @@ export const questions: Question[] = [
     ],
   },
   {
+    id: 'tiempo',
+    section: 'inicial',
+    type: 'single',
+    required: true,
+    prompt: '¿Cuánto tiempo puedes estudiar en cada sesión?',
+    help: 'Con esto armamos tu plan de cada día. Puedes cambiarlo después respondiendo de nuevo el cuestionario.',
+    options: [
+      { value: '<10', label: 'Menos de 10 minutos' },
+      { value: '10-20', label: 'De 10 a 20 minutos' },
+      { value: '>20', label: 'Más de 20 minutos' },
+    ],
+  },
+  {
     id: 'py_q1',
     section: 'diagnostico',
     type: 'multiple',

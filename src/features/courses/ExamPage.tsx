@@ -18,6 +18,8 @@ import {
   type PublishedCourseRecord,
   type PublishedQuestionOptionRecord,
 } from './courseService'
+import { useLiteMode } from '@/features/adaptation/useEnvironmentRules'
+import '@/features/adaptation/adaptation.css'
 
 interface ExamPageProps {
   user: {
@@ -38,6 +40,8 @@ interface ExamQuestionViewModel {
 }
 
 export default function ExamPage({ user, onLogout }: ExamPageProps) {
+  // R13: con conexión débil se avisa antes de entregar.
+  const { showSubmissionWarning } = useLiteMode()
   const { courseId } = useParams()
   const [course, setCourse] = useState<PublishedCourseRecord | null>(null)
   const [exam, setExam] = useState<PublishedAssessmentRecord | null>(null)
@@ -550,6 +554,12 @@ export default function ExamPage({ user, onLogout }: ExamPageProps) {
             )
           })}
         </div>
+
+        {showSubmissionWarning && (
+          <div className="student-rule-warning" role="note">
+            Tu conexión está lenta. Al entregar, espera a que aparezca tu calificación antes de cerrar o recargar la página.
+          </div>
+        )}
 
         <div className="student-activity-footer">
           <button type="button" className="student-button" onClick={handleSubmit} disabled={!allAnswered}>

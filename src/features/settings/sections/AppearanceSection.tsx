@@ -1,9 +1,15 @@
-import type { FontSize, Preferences } from '../preferences'
+import type { FontSize, NightMode, Preferences } from '../preferences'
 
 const FONT_OPTIONS: Array<{ value: FontSize; label: string; sample: string }> = [
   { value: 'normal', label: 'Normal', sample: 'A' },
   { value: 'grande', label: 'Grande', sample: 'A+' },
   { value: 'muy-grande', label: 'Muy grande', sample: 'A++' },
+]
+
+const NIGHT_OPTIONS: Array<{ value: NightMode; label: string }> = [
+  { value: 'auto', label: 'Automático' },
+  { value: 'siempre', label: 'Siempre' },
+  { value: 'nunca', label: 'Nunca' },
 ]
 
 interface SwitchRowProps {
@@ -80,6 +86,25 @@ export default function AppearanceSection({ preferences, onChange: update }: App
         checked={preferences.reducedMotion}
         onChange={(reducedMotion) => update({ reducedMotion })}
       />
+
+      <div className="settings-row">
+        <div className="settings-row-copy">
+          <strong id="night-mode-label">Modo noche</strong>
+          <span>En automático se activa de 20:00 a 6:00 para cansar menos la vista.</span>
+        </div>
+        <div className="settings-segmented" role="group" aria-labelledby="night-mode-label">
+          {NIGHT_OPTIONS.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              aria-pressed={preferences.nightMode === option.value}
+              onClick={() => update({ nightMode: option.value })}
+            >
+              <small>{option.label}</small>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="settings-preview" aria-live="polite">
         <strong>Vista previa</strong>

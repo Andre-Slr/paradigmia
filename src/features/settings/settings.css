@@ -56,6 +56,23 @@ html[data-motion='reducido'] *::after {
   scroll-behavior: auto !important;
 }
 
+/* R12 · Modo noche: invierte los colores claros a oscuros y deja las imágenes como están.
+   Se aplica de 20:00 a 6:00 si la preferencia es "Automático", o siempre si el
+   usuario lo eligió en Configuración. */
+html[data-night='on'] {
+  background: #121212;
+  filter: invert(0.9) hue-rotate(180deg);
+}
+
+html[data-night='on'] :is(img, video, picture, svg image) {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+/* R13 · Modo ligero: con conexión débil se ocultan las hojas decorativas. */
+html[data-lite='on'] .student-banner-decor {
+  display: none;
+}
+
 /* ---------- Página de Configuración ---------- */
 
 .settings-page {

@@ -1,5 +1,14 @@
 import rulesConfig from './adaptationRules.json'
 import type { AdaptableCourse, Nivel } from './adaptation'
+import type { CourseLearningStep } from '@/features/courses/courseService'
+
+/**
+ * Intérprete de las reglas de adaptación (adaptationRules.json).
+ *
+ * Todas las funciones son puras: reciben datos y devuelven decisiones. Cada
+ * regla se puede apagar con "enabled": false en el JSON, y sus números
+ * (puntos, límites, rutas) se cambian ahí mismo sin tocar este archivo.
+ */
 
 type Facts = Record<string, unknown>
 
@@ -27,8 +36,11 @@ export interface RuleInput<C extends AdaptableCourse> {
   initialLevel: Nivel | null
   interests: string[]
   preferredLanguage: string | null
+  /** Aciertos del diagnóstico en escala de 0 a 10 (null si no hizo diagnóstico). */
   diagnosticScore: number | null
   courses: C[]
+  /** Cursos que el estudiante ya terminó al 100 % (R15). */
+  completedCourses?: AdaptableCourse[]
 }
 
 export interface RuleRecommendation<C extends AdaptableCourse> {
@@ -44,13 +56,11 @@ export interface RuleOutput<C extends AdaptableCourse> {
   openHintsByDefault: boolean
 }
 
-const SUPPORTED_RULES = new Set(['R1', 'R2', 'R3', 'R4', 'R5', 'R6'])
-const LEVEL_ORDER: Nivel[] = ['principiante', 'basico', 'intermedio', 'avanzado']
+export const LEVEL_ORDER: Nivel[] = ['basico', 'intermedio', 'avanzado']
 const LEVEL_RANK: Record<Nivel, number> = {
-  principiante: 1,
-  basico: 2,
-  intermedio: 3,
-  avanzado: 4,
+  basico: 1,
+  intermedio: 2,
+  avanzado: 3,
 }
 
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -101,9 +111,12 @@ function getRules(): RuleDefinition[] {
     return rule
   })
 
-  return rules
-    .filter((rule) => rule.enabled && SUPPORTED_RULES.has(rule.id))
-    .sort((a, b) => b.priority - a.priority)
+  return rules.filter((rule) => rule.enabled).sort((a, b) => b.priority - a.priority)
+}
+
+/** Devuelve una regla encendida por su id, o null si no existe o está apagada. */
+function getRule(id: string): RuleDefinition | null {
+  return getRules().find((rule) => rule.id === id) ?? null
 }
 
 function matchesCondition(condition: RuleCondition, facts: Facts): boolean {
@@ -122,15 +135,28 @@ function matchesCondition(condition: RuleCondition, facts: Facts): boolean {
         actual >= condition.value
     case 'in':
       return Array.isArray(condition.value) && condition.value.includes(actual)
+    case 'outside_range': {
+      // [inicio, fin): fuera del rango significa antes de inicio o desde fin en adelante.
+      if (typeof actual !== 'number' || !Array.isArray(condition.value)) return false
+      const [start, end] = condition.value
+      return typeof start === 'number' && typeof end === 'number' && (actual < start || actual >= end)
+    }
     default:
       return false
   }
 }
 
-function normalizeLanguage(language: string | null): string | null {
+/** Evalúa la condición de una regla con los datos dados. */
+function ruleApplies(id: string, facts: Facts): RuleDefinition | null {
+  const rule = getRule(id)
+  return rule && matchesCondition(rule.condition, facts) ? rule : null
+}
+
+export function normalizeLanguage(language: string | null): string | null {
   const value = (language ?? '').trim().toLowerCase()
   if (!value) return null
   if (value.includes('javascript') || value === 'js') return 'javascript'
+  if (value.includes('typescript')) return 'typescript'
   if (value.includes('python')) return 'python'
   if (value.includes('html')) return 'html'
   if (value.includes('css')) return 'css'
@@ -141,14 +167,17 @@ function normalizeLanguage(language: string | null): string | null {
   return value
 }
 
-function normalizeLevel(level: string | null): Nivel {
+/** Convierte el nivel de un curso o perfil a uno de los 3 niveles. "Principiante" = básico. */
+export function normalizeLevel(level: string | null): Nivel {
   const value = (level ?? '').trim().toLowerCase()
   if (value.includes('avanz')) return 'avanzado'
   if (value.includes('interm')) return 'intermedio'
-  if (value.includes('básico') || value.includes('basico') || value.includes('basic')) {
-    return 'basico'
-  }
-  return 'principiante'
+  return 'basico'
+}
+
+/** Clave "lenguaje|nivel" con la que las rutas de R15 identifican a un curso. */
+export function courseKey(course: Pick<AdaptableCourse, 'language' | 'level'>): string {
+  return `${normalizeLanguage(course.language) ?? ''}|${normalizeLevel(course.level)}`
 }
 
 function isNivel(value: unknown): value is Nivel {
@@ -188,14 +217,17 @@ function getInterestMatches(
 export function runJsonAdaptationEngine<C extends AdaptableCourse>(
   input: RuleInput<C>,
 ): RuleOutput<C> {
+  const completedCourses = input.completedCourses ?? []
   const facts: Facts = {
     experienceAnswer: input.experienceAnswer,
-    computedLevel: input.initialLevel ?? 'principiante',
+    computedLevel: input.initialLevel ?? 'basico',
     interests: input.interests,
     preferredLanguage: input.preferredLanguage,
     diagnosticScore: input.diagnosticScore,
+    completedCourses,
   }
-  let eligibleCourses = [...input.courses]
+  const completedIds = new Set(completedCourses.map((course) => course.id))
+  let eligibleCourses = input.courses.filter((course) => !completedIds.has(course.id))
   let suggestedStartLesson: 1 | 2 = 1
   let openHintsByDefault = false
   const courseScores = new Map<string, CourseScore>(
@@ -215,13 +247,29 @@ export function runJsonAdaptationEngine<C extends AdaptableCourse>(
           ? mappedLevel
           : isNivel(defaultLevel)
             ? defaultLevel
-            : 'principiante'
+            : 'basico'
+        break
+      }
+
+      case 'RAISE_LEVEL': {
+        // R16: un diagnóstico alto sube el nivel (sin pasar de avanzado).
+        const current = isNivel(facts.computedLevel) ? facts.computedLevel : 'basico'
+        const steps = getNumber(rule.action.steps) ?? 1
+        const index = Math.min(LEVEL_ORDER.indexOf(current) + steps, LEVEL_ORDER.length - 1)
+        facts.computedLevel = LEVEL_ORDER[index]
         break
       }
 
       case 'FILTER_COURSE_LEVEL': {
-        const userLevel = isNivel(facts.computedLevel) ? facts.computedLevel : 'principiante'
-        const maxLevelDelta = getNumber(rule.action.maxLevelDelta) ?? 0
+        const userLevel = isNivel(facts.computedLevel) ? facts.computedLevel : 'basico'
+        const byExperience = isRecord(rule.action.maxLevelDeltaByExperience)
+          ? rule.action.maxLevelDeltaByExperience
+          : {}
+        const experience = getString(facts.experienceAnswer)
+        const maxLevelDelta =
+          (experience ? getNumber(byExperience[experience]) : null) ??
+          getNumber(rule.action.maxLevelDelta) ??
+          0
         const filtered = eligibleCourses.filter(
           (course) =>
             LEVEL_RANK[normalizeLevel(course.level)] <= LEVEL_RANK[userLevel] + maxLevelDelta,
@@ -233,6 +281,29 @@ export function runJsonAdaptationEngine<C extends AdaptableCourse>(
           eligibleCourses = eligibleCourses.filter(
             (course) => normalizeLevel(course.level) === normalizeLevel(fallbackLevel),
           )
+        }
+        break
+      }
+
+      case 'SCORE_NEXT_COURSE': {
+        // R15: al terminar un curso se recomienda el que sigue en su ruta. Este curso
+        // se agrega aunque R4 lo haya ocultado, porque terminar el anterior demuestra el nivel.
+        const routes = isRecord(rule.action.routes) ? rule.action.routes : {}
+        const points = getNumber(rule.action.points) ?? 0
+        for (const finished of completedCourses) {
+          const targets = new Set(getStringArray(routes[courseKey(finished)]))
+          if (targets.size === 0) continue
+
+          for (const course of input.courses) {
+            if (completedIds.has(course.id) || !targets.has(courseKey(course))) continue
+            const entry = courseScores.get(course.id)
+            if (!entry) continue
+            entry.score += points
+            entry.reasons.push(`Terminaste "${finished.title}" y este es el siguiente paso`)
+            if (!eligibleCourses.some((item) => item.id === course.id)) {
+              eligibleCourses = [...eligibleCourses, course]
+            }
+          }
         }
         break
       }
@@ -287,12 +358,12 @@ export function runJsonAdaptationEngine<C extends AdaptableCourse>(
     }
   }
 
-  const userLevel = isNivel(facts.computedLevel) ? facts.computedLevel : 'principiante'
+  const userLevel = isNivel(facts.computedLevel) ? facts.computedLevel : 'basico'
   for (const course of eligibleCourses) {
     const entry = courseScores.get(course.id)
     if (!entry || entry.score === 0) continue
     const levelGap = LEVEL_RANK[normalizeLevel(course.level)] - LEVEL_RANK[userLevel]
-    if (levelGap >= -1) {
+    if (levelGap >= 0) {
       entry.reasons.push('Va de acuerdo con tu nivel')
       entry.score += 1
     } else {
@@ -316,7 +387,7 @@ export function runJsonAdaptationEngine<C extends AdaptableCourse>(
 
   if (recommendedCourses.every(({ score }) => score === 0)) {
     const fallbackCourses = eligibleCourses.filter(
-      (course) => LEVEL_RANK[normalizeLevel(course.level)] <= LEVEL_RANK.basico,
+      (course) => normalizeLevel(course.level) === 'basico',
     )
     recommendedCourses = fallbackCourses.map((course) => ({
       course,
@@ -333,9 +404,182 @@ export function runJsonAdaptationEngine<C extends AdaptableCourse>(
   }
 
   return {
-    computedLevel: isNivel(facts.computedLevel) ? facts.computedLevel : 'principiante',
+    computedLevel: userLevel,
     recommendedCourses,
     suggestedStartLesson,
     openHintsByDefault,
   }
+}
+
+/* ------------------------------------------------------------------------- */
+/* R7–R11: avance, repaso y plan de la sesión dentro de un curso              */
+/* ------------------------------------------------------------------------- */
+
+export interface StepProgress {
+  completedLessonIds: string[]
+  passedActivityIds: string[]
+  examPassed: boolean
+}
+
+export interface AttemptLike {
+  assessment_id: string | null
+  passed: boolean | null
+}
+
+export type SessionBudget = '<10' | '10-20' | '>20'
+
+export interface ReviewNeeded {
+  /** Actividad que el estudiante ha reprobado varias veces. */
+  activity: CourseLearningStep
+  /** Lección de esa actividad, para repasarla antes de reintentar. */
+  lesson: CourseLearningStep | null
+  failedAttempts: number
+}
+
+export interface SessionPlan {
+  /** Regla de sesión que se aplicó (R9, R10 u R11), o null si no sabemos su tiempo. */
+  sessionRule: 'R9' | 'R10' | 'R11' | null
+  /** Pasos sugeridos para hoy, en orden. */
+  steps: CourseLearningStep[]
+  /** R8: repaso obligatorio, si aplica. */
+  review: ReviewNeeded | null
+  message: string | null
+}
+
+function isStepDone(step: CourseLearningStep, progress: StepProgress): boolean {
+  if (step.type === 'lesson') return progress.completedLessonIds.includes(step.id)
+  if (step.type === 'activity') return progress.passedActivityIds.includes(step.id)
+  return progress.examPassed
+}
+
+/** R7: el siguiente paso pendiente del curso (lección, actividad o examen). */
+export function findNextStep(
+  sequence: CourseLearningStep[],
+  progress: StepProgress,
+): CourseLearningStep | null {
+  const nextStep = sequence.find((step) => !isStepDone(step, progress)) ?? null
+  return ruleApplies('R7', { nextStepInCourse: nextStep?.id ?? null }) ? nextStep : null
+}
+
+/** R8: si alguna actividad pendiente lleva 3 o más intentos reprobados, pide repasar su lección. */
+export function findReviewStep(
+  sequence: CourseLearningStep[],
+  progress: StepProgress,
+  attempts: AttemptLike[],
+): ReviewNeeded | null {
+  let worst: ReviewNeeded | null = null
+
+  for (const step of sequence) {
+    if (step.type !== 'activity' || progress.passedActivityIds.includes(step.id)) continue
+    const failedAttempts = attempts.filter(
+      (attempt) => attempt.assessment_id === step.id && attempt.passed !== true,
+    ).length
+    if (!worst || failedAttempts > worst.failedAttempts) {
+      worst = {
+        activity: step,
+        lesson: sequence.find((item) => item.type === 'lesson' && item.id === step.lessonId) ?? null,
+        failedAttempts,
+      }
+    }
+  }
+
+  if (!worst) return null
+  return ruleApplies('R8', { maxFailedAttempts: worst.failedAttempts }) ? worst : null
+}
+
+const SESSION_RULES = ['R9', 'R10', 'R11'] as const
+
+/** R7–R11: arma el plan de estudio de hoy según el avance, los intentos y el tiempo disponible. */
+export function planStudySession(
+  sequence: CourseLearningStep[],
+  progress: StepProgress,
+  attempts: AttemptLike[],
+  sessionTimeBudget: SessionBudget | null,
+): SessionPlan {
+  const review = findReviewStep(sequence, progress, attempts)
+  const reviewRule = getRule('R8')
+
+  if (review && reviewRule?.action.overridesSessionBudget === true) {
+    const steps = [review.lesson, review.activity].filter(
+      (step): step is CourseLearningStep => step !== null,
+    )
+    return {
+      sessionRule: null,
+      steps,
+      review,
+      message: `Llevas ${review.failedAttempts} intentos sin aprobar "${review.activity.title}". Antes de volver a intentarlo, repasa ${
+        review.lesson ? `"${review.lesson.title}"` : 'la lección'
+      }.`,
+    }
+  }
+
+  const nextStep = findNextStep(sequence, progress)
+  if (!nextStep) {
+    return { sessionRule: null, steps: [], review: null, message: null }
+  }
+
+  const facts = { sessionTimeBudget }
+  const sessionRule = SESSION_RULES.map((id) => ruleApplies(id, facts)).find(Boolean) ?? null
+  const maxSteps = sessionRule ? getNumber(sessionRule.action.maxSteps) ?? 1 : 1
+  const startIndex = sequence.findIndex((step) => step.id === nextStep.id)
+  const steps = sequence
+    .slice(startIndex)
+    .filter((step) => !isStepDone(step, progress))
+    .slice(0, maxSteps)
+
+  const budgetText: Record<SessionBudget, string> = {
+    '<10': 'menos de 10 minutos',
+    '10-20': 'de 10 a 20 minutos',
+    '>20': 'más de 20 minutos',
+  }
+
+  return {
+    sessionRule: sessionRule ? (sessionRule.id as SessionPlan['sessionRule']) : null,
+    steps,
+    review: null,
+    message:
+      sessionRule && sessionTimeBudget
+        ? `Como estudias ${budgetText[sessionTimeBudget]} por sesión, hoy te proponemos ${
+            steps.length === 1 ? 'este paso' : `estos ${steps.length} pasos`
+          }.`
+        : null,
+  }
+}
+
+/* ------------------------------------------------------------------------- */
+/* R12–R14: reglas del entorno (hora, conexión, inactividad)                  */
+/* ------------------------------------------------------------------------- */
+
+/** R12: ¿la hora local cae fuera del horario diurno? */
+export function isNightTime(localHour: number): boolean {
+  return ruleApplies('R12', { localHour }) !== null
+}
+
+export interface LiteModeDecision {
+  lite: boolean
+  hideDecorativeFoliage: boolean
+  showSubmissionWarning: boolean
+}
+
+/** R13: con conexión débil se quitan las decoraciones y se avisa al enviar. */
+export function decideLiteMode(isWeakConnection: boolean): LiteModeDecision {
+  const rule = ruleApplies('R13', { isWeakConnection })
+  return {
+    lite: rule !== null,
+    hideDecorativeFoliage: rule?.action.hideDecorativeFoliage === true,
+    showSubmissionWarning: rule?.action.showSubmissionWarning === true,
+  }
+}
+
+/** R14: minutos de inactividad antes de preguntar "¿Sigues ahí?" (null si la regla está apagada). */
+export function getInactivityRule(): { minutes: number; message: string } | null {
+  const rule = getRule('R14')
+  const minutes = getNumber(rule?.condition.value)
+  if (!rule || minutes === null) return null
+  return { minutes, message: getString(rule.action.message) ?? '¿Sigues ahí?' }
+}
+
+/** R14: ¿ya pasó el límite de inactividad? */
+export function isInactive(inactiveMinutes: number): boolean {
+  return ruleApplies('R14', { inactiveMinutes }) !== null
 }

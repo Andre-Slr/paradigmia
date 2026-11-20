@@ -6,6 +6,7 @@ import { languageIcons } from '@/features/onboarding/languageIcons'
 import { getPublishedCourses, type PublishedCourseRecord } from './courseService'
 import { recommendCourses } from '@/features/adaptation/adaptation'
 import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
+import { useCompletedCourses } from '@/features/adaptation/useCompletedCourses'
 import '@/features/adaptation/adaptation.css'
 
 interface CoursesPageProps {
@@ -153,14 +154,15 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
     })
   }, [courses, query, selectedLanguage, selectedLevel])
 
-  // Motor de adaptación: motivos por curso recomendado (reglas R1 a R4).
+  // Motor de adaptación: motivos por curso recomendado (R1–R4, R15 y R16).
+  const completedCourses = useCompletedCourses(user.id)
   const recommendationReasons = useMemo(() => {
     const reasons = new Map<string, string[]>()
-    for (const { course, reasons: courseReasons, score } of recommendCourses(learnerProfile, courses)) {
+    for (const { course, reasons: courseReasons, score } of recommendCourses(learnerProfile, courses, completedCourses)) {
       if (score > 0) reasons.set(course.id, courseReasons)
     }
     return reasons
-  }, [learnerProfile, courses])
+  }, [learnerProfile, courses, completedCourses])
 
   async function handleLogout(): Promise<string | null> {
     return onLogout()

@@ -10,20 +10,25 @@
  */
 
 export type FontSize = 'normal' | 'grande' | 'muy-grande'
+/** R12: "auto" = modo noche de 20:00 a 6:00; "siempre" y "nunca" lo fijan a mano. */
+export type NightMode = 'auto' | 'siempre' | 'nunca'
 
 export interface Preferences {
   fontSize: FontSize
   highContrast: boolean
   reducedMotion: boolean
+  nightMode: NightMode
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
   fontSize: 'normal',
   highContrast: false,
   reducedMotion: false,
+  nightMode: 'auto',
 }
 
 const FONT_SIZES: FontSize[] = ['normal', 'grande', 'muy-grande']
+const NIGHT_MODES: NightMode[] = ['auto', 'siempre', 'nunca']
 const LAST_USER_KEY = 'paradigmia:preferencias:ultimo-usuario'
 
 function storageKey(userId: string) {
@@ -43,6 +48,9 @@ export function loadPreferences(userId: string | null): Preferences {
         : DEFAULT_PREFERENCES.fontSize,
       highContrast: parsed.highContrast === true,
       reducedMotion: parsed.reducedMotion === true,
+      nightMode: NIGHT_MODES.includes(parsed.nightMode as NightMode)
+        ? (parsed.nightMode as NightMode)
+        : DEFAULT_PREFERENCES.nightMode,
     }
   } catch {
     return DEFAULT_PREFERENCES
@@ -65,4 +73,6 @@ export function applyPreferences(preferences: Preferences) {
   root.dataset.fontSize = preferences.fontSize
   root.dataset.contrast = preferences.highContrast ? 'alto' : 'normal'
   root.dataset.motion = preferences.reducedMotion ? 'reducido' : 'normal'
+  // useEnvironmentRules (R12) lee esta preferencia y decide si activa el modo noche.
+  root.dataset.nightPref = preferences.nightMode
 }

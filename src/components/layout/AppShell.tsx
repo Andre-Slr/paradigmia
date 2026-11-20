@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 import Sidebar from './Sidebar'
+import InactivityPrompt from '@/features/adaptation/InactivityPrompt'
+import '@/features/adaptation/adaptation.css'
 
 interface AppShellProps {
   children: ReactNode
@@ -18,6 +20,9 @@ export default function AppShell({ children, onLogout }: AppShellProps) {
       <main className="student-main">
         <div className="student-page">{children}</div>
       </main>
+
+      {/* R14: pregunta "¿Sigues ahí?" tras varios minutos sin actividad. */}
+      <InactivityPrompt />
     </div>
   )
 }

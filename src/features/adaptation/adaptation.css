@@ -125,3 +125,76 @@
 .student-lesson-body .student-lesson-callout {
   margin: 0;
 }
+
+/* R7–R11 · Plan de estudio del día en la página del curso. */
+.student-session-plan {
+  margin: 0 0 16px;
+  padding: 14px 18px;
+  border-left: 5px solid var(--student-olive);
+  border-radius: 16px;
+  background: rgba(104, 125, 49, 0.12);
+  color: var(--student-dark-green);
+  line-height: 1.5;
+}
+
+.student-session-plan.is-review {
+  border-left-color: #b45309;
+  background: rgba(180, 83, 9, 0.1);
+}
+
+.student-session-plan p {
+  margin: 4px 0 8px;
+}
+
+.student-session-plan ol {
+  margin: 0;
+  padding-left: 1.3rem;
+}
+
+.student-session-plan li + li {
+  margin-top: 4px;
+}
+
+.student-session-plan li span {
+  margin-left: 8px;
+  font-size: 0.78rem;
+  color: var(--student-teal);
+}
+
+/* R8 y R13 · Avisos dentro de actividades y exámenes. */
+.student-rule-warning {
+  margin: 12px 0;
+  padding: 12px 16px;
+  border-left: 5px solid #b45309;
+  border-radius: 14px;
+  background: rgba(180, 83, 9, 0.1);
+  color: var(--student-dark-green);
+  line-height: 1.5;
+}
+
+/* R14 · "¿Sigues ahí?" */
+.student-inactivity-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(25, 53, 12, 0.45);
+}
+
+.student-inactivity-card {
+  max-width: 420px;
+  padding: 28px;
+  border-radius: 22px;
+  background: var(--student-card);
+  box-shadow: var(--student-shadow);
+  color: var(--student-dark-green);
+  text-align: center;
+}
+
+.student-inactivity-card h2 {
+  margin-bottom: 8px;
+  font-size: 1.5rem;
+}

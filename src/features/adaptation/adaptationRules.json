@@ -1,5 +1,6 @@
 {
-  "version": "1.0.0",
+  "version": "2.0.0",
+  "levels": ["basico", "intermedio", "avanzado"],
   "rules": [
     {
       "id": "R1",
@@ -12,12 +13,25 @@
       "action": {
         "type": "SET_LEVEL",
         "mapping": {
-          "principiante": "principiante",
+          "principiante": "basico",
           "basico": "basico",
           "previos": "intermedio",
           "varios": "avanzado"
         },
-        "default": "principiante"
+        "default": "basico"
+      }
+    },
+    {
+      "id": "R16",
+      "name": "El diagnóstico sube el nivel",
+      "category": "perfil",
+      "priority": 99,
+      "enabled": true,
+      "dataInputs": [8, 36, 37],
+      "condition": { "field": "diagnosticScore", "operator": ">=", "value": 8 },
+      "action": {
+        "type": "RAISE_LEVEL",
+        "steps": 1
       }
     },
     {
@@ -64,7 +78,41 @@
       "action": {
         "type": "FILTER_COURSE_LEVEL",
         "maxLevelDelta": 1,
-        "fallbackLevel": "principiante"
+        "maxLevelDeltaByExperience": { "principiante": 0 },
+        "fallbackLevel": "basico"
+      }
+    },
+    {
+      "id": "R15",
+      "name": "Siguiente curso",
+      "category": "recomendacion",
+      "priority": 88,
+      "enabled": true,
+      "dataInputs": [38, 39, 45],
+      "condition": { "field": "completedCourses", "operator": "not_empty" },
+      "action": {
+        "type": "SCORE_NEXT_COURSE",
+        "points": 5,
+        "routes": {
+          "html|basico": ["css|basico", "git|basico"],
+          "css|basico": ["javascript|intermedio"],
+          "javascript|intermedio": ["typescript|intermedio", "react|intermedio", "node.js|intermedio"],
+          "typescript|intermedio": ["react|intermedio"],
+          "react|intermedio": ["software|avanzado"],
+          "node.js|intermedio": ["backend|avanzado"],
+          "python|basico": ["python|intermedio", "algoritmos|basico"],
+          "python|intermedio": ["python|avanzado", "sql|basico"],
+          "python|avanzado": ["backend|avanzado"],
+          "sql|basico": ["sql|intermedio"],
+          "sql|intermedio": ["backend|avanzado"],
+          "java|basico": ["java|avanzado", "git|basico"],
+          "java|avanzado": ["software|avanzado"],
+          "php|basico": ["sql|basico", "node.js|intermedio"],
+          "c|basico": ["cpp|intermedio", "algoritmos|basico"],
+          "cpp|intermedio": ["algoritmos|avanzado"],
+          "algoritmos|basico": ["algoritmos|avanzado"],
+          "git|basico": ["javascript|intermedio"]
+        }
       }
     },
     {
@@ -91,7 +139,7 @@
       "condition": {
         "field": "computedLevel",
         "operator": "in",
-        "value": ["principiante", "basico"]
+        "value": ["basico"]
       },
       "action": {
         "type": "SET_HINTS_VISIBILITY",
