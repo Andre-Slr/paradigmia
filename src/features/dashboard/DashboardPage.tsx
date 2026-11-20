@@ -49,6 +49,8 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
   const [recentCourses, setRecentCourses] = useState<RecentCourseItem[]>([])
   // Cursos publicados en los que el estudiante aún no está inscrito.
   const [availableCourses, setAvailableCourses] = useState<PublishedCourseRecord[]>([])
+  // Cursos terminados al 100 %: R15 recomienda el que sigue en su ruta.
+  const [completedCourses, setCompletedCourses] = useState<PublishedCourseRecord[]>([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
   const { profile } = useProfile(user.id)
@@ -85,22 +87,35 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
             const academicProgress = await getCourseAcademicProgressForEnrollment(enrollment.id, course.id)
 
             return {
+              course,
               id: course.id,
               title: course.title,
               slug: course.slug,
               progress: academicProgress.progress,
               status: academicProgress.progress >= 100 ? 'Completado' : 'En curso',
               icon: course.title.slice(0, 2).toUpperCase(),
-            } satisfies RecentCourseItem
+            } satisfies RecentCourseItem & { course: PublishedCourseRecord }
           })
         )
 
-        setRecentCourses(recentCourseData.filter(Boolean) as RecentCourseItem[])
+        const loadedCourses = recentCourseData.filter(
+          (item): item is RecentCourseItem & { course: PublishedCourseRecord } => item !== null,
+        )
+        setRecentCourses(loadedCourses.map((item) => ({
+          id: item.id,
+          title: item.title,
+          slug: item.slug,
+          progress: item.progress,
+          status: item.status,
+          icon: item.icon,
+        })))
+        setCompletedCourses(loadedCourses.filter((item) => item.progress >= 100).map((item) => item.course))
         setAvailableCourses(publishedCourses.filter((course) => !enrolledCourseIds.has(course.id)))
       } catch (loadError) {
         if (!active) return
         setRecentCourses([])
         setAvailableCourses([])
+        setCompletedCourses([])
         setError(
           loadError instanceof Error
             ? loadError.message
@@ -127,10 +142,11 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
     return message
   }
 
-  // Motor de adaptación (reglas R1 a R4): elige hasta 3 cursos según el cuestionario inicial.
+  // Motor de adaptación (R1–R4, R15 y R16): elige hasta 3 cursos según el
+  // cuestionario inicial y los cursos que ya terminó.
   const recommendedCourses = useMemo<RecommendedCourseItem[]>(
     () =>
-      recommendCourses(learnerProfile, availableCourses)
+      recommendCourses(learnerProfile, availableCourses, completedCourses)
         .slice(0, 3)
         .map(({ course, reasons }) => ({
           id: course.id,
@@ -143,7 +159,7 @@ export default function DashboardPage({ user, onLogout }: DashboardPageProps) {
           slug: course.slug,
           reasons,
         })),
-    [learnerProfile, availableCourses],
+    [learnerProfile, availableCourses, completedCourses],
   )
 
   const nombre = profile?.nombre ?? user.user_metadata.nombre ?? user.email

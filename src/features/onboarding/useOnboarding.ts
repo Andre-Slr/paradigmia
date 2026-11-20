@@ -1,15 +1,9 @@
 import { useCallback, useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import { computeLevelFromAnswers } from '@/features/adaptation/adaptation'
 import type { Answers } from './types'
 
 export type OnboardingStatus = 'loading' | 'pending' | 'completed'
-
-const NIVEL_POR_EXPERIENCIA: Record<string, string> = {
-  principiante: 'principiante',
-  basico: 'basico',
-  previos: 'intermedio',
-  varios: 'avanzado',
-}
 
 export function useOnboarding(userId?: string) {
   // Guardamos a qué usuario pertenece el estado. Mientras no coincida con el
@@ -67,11 +61,8 @@ export function useOnboarding(userId?: string) {
 
       if (error) return error.message
 
-      const experiencia = answers.experiencia
-      const nivel =
-        typeof experiencia === 'string'
-          ? NIVEL_POR_EXPERIENCIA[experiencia]
-          : undefined
+      // R1 + R16: nivel según la experiencia, que sube si el diagnóstico salió alto.
+      const nivel = computeLevelFromAnswers(answers)
 
       if (nivel) {
         const { error: profileError } = await supabase

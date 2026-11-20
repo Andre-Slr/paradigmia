@@ -5,7 +5,6 @@ import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
 import type { Nivel } from '@/features/adaptation/adaptation'
 
 const NOMBRE_NIVEL: Record<Nivel, string> = {
-  principiante: 'Principiante',
   basico: 'Básico',
   intermedio: 'Intermedio',
   avanzado: 'Avanzado',
@@ -62,6 +61,10 @@ export default function LearningSection({ userId }: { userId: string }) {
           <div className="settings-fact">
             <dt>Diagnóstico</dt>
             <dd>{diagnostico}</dd>
+          </div>
+          <div className="settings-fact">
+            <dt>Tiempo por sesión</dt>
+            <dd>{profile.tiempoSesion ? optionLabel('tiempo', profile.tiempoSesion) : 'Sin definir'}</dd>
           </div>
         </dl>
       )}

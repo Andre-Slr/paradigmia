@@ -4,13 +4,19 @@
  * Funciones puras (no consultan la base de datos) que reciben el perfil del
  * estudiante y los cursos publicados en Supabase, y deciden qué cursos
  * recomendar, en qué lección empezar y qué ayudas mostrar. Cada regla lleva un
- * identificador (R1, R2...) que coincide con el documento del proyecto.
+ * identificador (R1, R2...) que coincide con adaptationRules.json.
  */
 import { questions } from '@/features/onboarding/questions'
 import type { Answers } from '@/features/onboarding/types'
-import { runJsonAdaptationEngine } from './ruleInterpreter'
+import {
+  normalizeLanguage as normalizeRuleLanguage,
+  normalizeLevel,
+  runJsonAdaptationEngine,
+} from './ruleInterpreter'
+import type { SessionBudget } from './ruleInterpreter'
 
-export type Nivel = 'principiante' | 'basico' | 'intermedio' | 'avanzado'
+/** Los cursos y los estudiantes usan los mismos 3 niveles. */
+export type Nivel = 'basico' | 'intermedio' | 'avanzado'
 
 /** Lo mínimo que el motor necesita saber de un curso (coincide con la tabla courses). */
 export interface AdaptableCourse {
@@ -32,6 +38,8 @@ export interface LearnerProfile {
   intereses: string[]
   lenguaje: string | null
   diagnostico: DiagnosticResult | null
+  /** Tiempo que estudia por sesión (R9–R11). */
+  tiempoSesion: SessionBudget | null
 }
 
 export interface Recommendation<C extends AdaptableCourse> {
@@ -40,36 +48,16 @@ export interface Recommendation<C extends AdaptableCourse> {
   score: number
 }
 
-/** Misma equivalencia que usa useOnboarding al guardar el nivel en el perfil. */
-const NIVEL_POR_EXPERIENCIA: Record<string, Nivel> = {
-  principiante: 'principiante',
-  basico: 'basico',
-  previos: 'intermedio',
-  varios: 'avanzado',
-}
+const SESSION_BUDGETS: SessionBudget[] = ['<10', '10-20', '>20']
 
 /** Convierte el lenguaje guardado en Supabase ("Python", "C++"...) a la clave del cuestionario. */
 export function normalizeLanguage(language: string | null): string | null {
-  const value = (language ?? '').trim().toLowerCase()
-  if (!value) return null
-  if (value.includes('python')) return 'python'
-  if (value.includes('javascript') || value === 'js') return 'javascript'
-  if (value.includes('html')) return 'html'
-  if (value.includes('css')) return 'css'
-  if (value.includes('java')) return 'java'
-  if (value.includes('php')) return 'php'
-  if (value.includes('c++') || value.includes('cpp')) return 'cpp'
-  if (value === 'c') return 'c'
-  return value
+  return normalizeRuleLanguage(language)
 }
 
-/** Convierte el nivel guardado en Supabase ("Básico", "Intermedio"...) a un Nivel. */
+/** Convierte el nivel guardado en Supabase ("Principiante", "Intermedio"...) a un Nivel. */
 export function normalizeNivel(level: string | null): Nivel {
-  const value = (level ?? '').trim().toLowerCase()
-  if (value.includes('avanz')) return 'avanzado'
-  if (value.includes('interm')) return 'intermedio'
-  if (value.includes('básico') || value.includes('basico') || value.includes('basic')) return 'basico'
-  return 'principiante'
+  return normalizeLevel(level)
 }
 
 function sameAnswer(answer: unknown, correct: string | string[]): boolean {
@@ -99,35 +87,65 @@ export function scoreDiagnostic(answers: Answers): DiagnosticResult | null {
   return { lenguaje, aciertos, total: answered.length }
 }
 
-/** R1: arma el perfil del estudiante a partir de su cuestionario inicial. */
+/** Aciertos del diagnóstico en escala de 0 a 10, como los esperan R5 y R16. */
+function diagnosticOutOfTen(diag: DiagnosticResult | null): number | null {
+  return diag && diag.total > 0 ? (diag.aciertos / diag.total) * 10 : null
+}
+
+function engineInput(profile: LearnerProfile) {
+  return {
+    experienceAnswer: profile.experienciaAnswer,
+    initialLevel: profile.nivel,
+    interests: profile.intereses,
+    preferredLanguage: profile.lenguaje,
+  }
+}
+
+/** R1 + R16: arma el perfil del estudiante a partir de su cuestionario inicial. */
 export function buildLearnerProfile(
   answers: Answers | null,
   nivelGuardado?: string | null,
 ): LearnerProfile {
   const experiencia = typeof answers?.experiencia === 'string' ? answers.experiencia : ''
-  const nivelDerivado = NIVEL_POR_EXPERIENCIA[experiencia]
+  const tiempo = typeof answers?.tiempo === 'string' ? answers.tiempo : null
+  const diagnostico = answers ? scoreDiagnostic(answers) : null
 
-  return {
-    nivel: nivelGuardado ? normalizeNivel(nivelGuardado) : nivelDerivado ?? null,
+  const base: LearnerProfile = {
+    nivel: nivelGuardado ? normalizeNivel(nivelGuardado) : null,
     experienciaAnswer: experiencia || null,
     intereses: Array.isArray(answers?.intereses) ? answers.intereses : [],
     lenguaje: typeof answers?.lenguaje === 'string' ? answers.lenguaje : null,
-    diagnostico: answers ? scoreDiagnostic(answers) : null,
+    diagnostico,
+    tiempoSesion: SESSION_BUDGETS.includes(tiempo as SessionBudget) ? (tiempo as SessionBudget) : null,
   }
+
+  if (!base.experienciaAnswer) return base
+
+  // El nivel se recalcula con las reglas para que coincida siempre con el cuestionario.
+  const { computedLevel } = runJsonAdaptationEngine({
+    ...engineInput(base),
+    diagnosticScore: diagnosticOutOfTen(diagnostico),
+    courses: [],
+  })
+  return { ...base, nivel: computedLevel }
 }
 
-/** R1–R4: decide qué cursos recomendar y explica por qué. */
+/** Nivel que se guarda en perfiles.nivel al terminar el cuestionario (R1 + R16). */
+export function computeLevelFromAnswers(answers: Answers): Nivel | null {
+  return buildLearnerProfile(answers).nivel
+}
+
+/** R1–R4, R15 y R16: decide qué cursos recomendar y explica por qué. */
 export function recommendCourses<C extends AdaptableCourse>(
   profile: LearnerProfile,
   catalog: C[],
+  completedCourses: AdaptableCourse[] = [],
 ): Recommendation<C>[] {
   const { recommendedCourses } = runJsonAdaptationEngine({
-    experienceAnswer: profile.experienciaAnswer,
-    initialLevel: profile.nivel,
-    interests: profile.intereses,
-    preferredLanguage: profile.lenguaje,
-    diagnosticScore: null,
+    ...engineInput(profile),
+    diagnosticScore: diagnosticOutOfTen(profile.diagnostico),
     courses: catalog,
+    completedCourses,
   })
 
   return recommendedCourses
@@ -163,14 +181,9 @@ export function planCourse(
     diag !== null &&
     diag.total > 0 &&
     normalizeLanguage(course.language) === normalizeLanguage(diag.lenguaje)
-  const diagnosticScore =
-    diag && matchingDiagnostic ? (diag.aciertos / diag.total) * 10 : null
   const { suggestedStartLesson } = runJsonAdaptationEngine({
-    experienceAnswer: profile.experienciaAnswer,
-    initialLevel: profile.nivel,
-    interests: profile.intereses,
-    preferredLanguage: profile.lenguaje,
-    diagnosticScore,
+    ...engineInput(profile),
+    diagnosticScore: matchingDiagnostic ? diagnosticOutOfTen(diag) : null,
     courses: [course],
   })
 
@@ -193,17 +206,42 @@ export function planCourse(
 }
 
 /**
+ * R5 aplicado a la ruta: si el diagnóstico permite empezar en la lección 2,
+ * la lección 1 y su actividad dejan de bloquear lo que sigue (quedan como
+ * repaso opcional). En la página de un paso de repaso se usa la ruta completa.
+ */
+export function pathForStudent<S extends { id: string; type: string; title: string; lessonId?: string }>(
+  sequence: S[],
+  course: AdaptableCourse | null,
+  profile: LearnerProfile,
+  currentStepId?: string | null,
+): S[] {
+  if (!course) return sequence
+  const lessons = sequence
+    .filter((step) => step.type === 'lesson')
+    .map((step) => ({ id: step.id, title: step.title }))
+  const { tags } = planCourse(course, lessons, profile)
+  const optional = new Set(
+    Object.entries(tags)
+      .filter(([, tag]) => tag === 'repaso')
+      .map(([lessonId]) => lessonId),
+  )
+  if (optional.size === 0) return sequence
+
+  const path = sequence.filter((step) => !step.lessonId || !optional.has(step.lessonId))
+  if (currentStepId && !path.some((step) => step.id === currentStepId)) return sequence
+  return path
+}
+
+/**
  * R6 · Ayudas para principiantes: los bloques de tipo "principiante" de una
- * lección se muestran abiertos a quien está empezando y cerrados (con un botón
- * para abrirlos) a quien ya tiene experiencia.
+ * lección se muestran abiertos a quien está en nivel básico y cerrados (con un
+ * botón para abrirlos) a quien ya tiene más experiencia.
  */
 export function showBeginnerHelp(profile: LearnerProfile): boolean {
   return runJsonAdaptationEngine({
-    experienceAnswer: profile.experienciaAnswer,
-    initialLevel: profile.nivel,
-    interests: profile.intereses,
-    preferredLanguage: profile.lenguaje,
-    diagnosticScore: null,
+    ...engineInput(profile),
+    diagnosticScore: diagnosticOutOfTen(profile.diagnostico),
     courses: [],
   }).openHintsByDefault
 }

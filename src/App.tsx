@@ -15,11 +15,15 @@ import RetakeQuestionnairePage from '@/features/settings/RetakeQuestionnairePage
 import SettingsPage from '@/features/settings/SettingsPage'
 import { useOnboarding } from '@/features/onboarding/useOnboarding'
 import { applyPreferences, loadPreferences } from '@/features/settings/preferences'
+import { useEnvironmentRules } from '@/features/adaptation/useEnvironmentRules'
 
 export default function App() {
   const { user, loading, signIn, signUp, signOut } = useAuth()
   const { status, submit } = useOnboarding(user?.id)
   const userId = user?.id
+
+  // R12 (modo noche) y R13 (modo ligero) se aplican en toda la plataforma.
+  useEnvironmentRules()
 
   // Al iniciar sesión se aplican las preferencias de apariencia de ese usuario.
   useEffect(() => {
