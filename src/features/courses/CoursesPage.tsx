@@ -2,7 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import AppShell from '@/components/layout/AppShell'
-import { languageIcons } from '@/features/onboarding/languageIcons'
+import {
+  formatCourseLanguageLabel,
+  getCourseLanguageIcon,
+  normalizeCourseLanguageKey,
+} from './courseLanguage'
 import { getPublishedCourses, type PublishedCourseRecord } from './courseService'
 import { recommendCourses } from '@/features/adaptation/adaptation'
 import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
@@ -15,46 +19,6 @@ interface CoursesPageProps {
 }
 
 const levelOptions = ['Todos', 'Principiante', 'Intermedio', 'Avanzado'] as const
-
-function formatLanguageLabel(languageKey: string): string {
-  switch (languageKey) {
-    case 'python':
-      return 'Python'
-    case 'javascript':
-      return 'JavaScript'
-    case 'html':
-      return 'HTML'
-    case 'css':
-      return 'CSS'
-    case 'java':
-      return 'Java'
-    case 'php':
-      return 'PHP'
-    case 'cpp':
-      return 'C++'
-    case 'c':
-      return 'C'
-    default:
-      return languageKey ? languageKey.charAt(0).toUpperCase() + languageKey.slice(1) : 'Otro'
-  }
-}
-
-function normalizeLanguageKey(language: string | null): string {
-  const normalized = (language ?? '').trim().toLowerCase()
-
-  if (!normalized) return 'javascript'
-  if (normalized.includes('python')) return 'python'
-  if (normalized.includes('javascript') || normalized.includes('js')) return 'javascript'
-  if (normalized.includes('html')) return 'html'
-  if (normalized.includes('css')) return 'css'
-  if (normalized.includes('java')) return 'java'
-  if (normalized.includes('php')) return 'php'
-  if (normalized.includes('c++') || normalized.includes('cpp')) return 'cpp'
-  if (normalized.includes('c ')) return 'c'
-  if (normalized.includes('c')) return 'c'
-
-  return 'javascript'
-}
 
 function normalizeLevel(level: string | null): string {
   const normalized = (level ?? '').trim().toLowerCase()
@@ -119,7 +83,7 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
       new Set(
         courses.map((course) => {
           const label = course.language ?? 'Otro'
-          return normalizeLanguageKey(label)
+          return normalizeCourseLanguageKey(label)
         })
       )
     )
@@ -129,7 +93,7 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
 
   const languageOptionLabels = useMemo(
     () =>
-      Object.fromEntries(languageOptions.map((option) => [option, option === 'Todos' ? 'Todos' : formatLanguageLabel(option)])),
+      Object.fromEntries(languageOptions.map((option) => [option, option === 'Todos' ? 'Todos' : formatCourseLanguageLabel(option)])),
     [languageOptions]
   )
 
@@ -137,7 +101,7 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
     const normalizedQuery = query.trim().toLowerCase()
 
     return courses.filter((course) => {
-      const courseLanguageKey = normalizeLanguageKey(course.language)
+      const courseLanguageKey = normalizeCourseLanguageKey(course.language)
       const courseDisplayName = course.title ?? ''
       const courseDescription = course.description ?? ''
       const courseLevel = normalizeLevel(course.level)
@@ -261,7 +225,7 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
         {!loading && !error && filteredCourses.length > 0 && (
           <div className="student-catalog-grid">
             {filteredCourses.map((course) => {
-              const languageKey = normalizeLanguageKey(course.language)
+              const languageKey = normalizeCourseLanguageKey(course.language)
               const courseSlug = course.slug
               const displayLevel = normalizeLevel(course.level)
               const durationLabel = formatDuration(course.duration_weeks)
@@ -275,7 +239,7 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
                   {reasons && <span className="student-reco-badge">Recomendado para ti</span>}
                   <div className="student-catalog-card-top">
                     <div className="student-language-icon" aria-label={course.language ?? 'curso'}>
-                      <img src={languageIcons[languageKey]} alt={course.language ?? 'curso'} />
+                      <img src={getCourseLanguageIcon(languageKey)} alt={course.language ?? 'curso'} />
                     </div>
                     <span className="student-course-level">{displayLevel}</span>
                   </div>

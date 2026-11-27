@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '@/components/layout/AppShell'
 import Toast, { type StudentToastMessage } from '@/components/Toast'
-import { languageIcons } from '@/features/onboarding/languageIcons'
+import { getCourseLanguageIcon, normalizeCourseLanguageKey } from './courseLanguage'
 import { planCourse } from '@/features/adaptation/adaptation'
 import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
 import { findNextStep, planStudySession, type SessionPlan } from '@/features/adaptation/ruleInterpreter'
@@ -30,23 +30,6 @@ interface CourseDetailPageProps {
     email?: string | null
   }
   onLogout: () => Promise<string | null>
-}
-
-function normalizeLanguageKey(language: string | null): string {
-  const normalized = (language ?? '').trim().toLowerCase()
-
-  if (!normalized) return 'javascript'
-  if (normalized.includes('python')) return 'python'
-  if (normalized.includes('javascript') || normalized.includes('js')) return 'javascript'
-  if (normalized.includes('html')) return 'html'
-  if (normalized.includes('css')) return 'css'
-  if (normalized.includes('java')) return 'java'
-  if (normalized.includes('php')) return 'php'
-  if (normalized.includes('c++') || normalized.includes('cpp')) return 'cpp'
-  if (normalized.includes('c ')) return 'c'
-  if (normalized.includes('c')) return 'c'
-
-  return 'javascript'
 }
 
 function normalizeLevel(level: string | null): string {
@@ -275,7 +258,10 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
     }
   }, [course, showToast, user?.id])
 
-  const normalizedLanguageKey = useMemo(() => normalizeLanguageKey(course?.language ?? null), [course?.language])
+  const normalizedLanguageKey = useMemo(
+    () => normalizeCourseLanguageKey(course?.language ?? null),
+    [course?.language]
+  )
   const displayLevel = useMemo(() => normalizeLevel(course?.level ?? null), [course?.level])
   const durationLabel = useMemo(() => formatDuration(course?.duration_weeks ?? null), [course?.duration_weeks])
 
@@ -546,7 +532,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
         <article className="student-course-detail-card">
           <div className="student-catalog-card-top">
             <div className="student-language-icon" aria-label={course.language ?? 'curso'}>
-              <img src={languageIcons[normalizedLanguageKey]} alt={course.language ?? 'curso'} />
+              <img src={getCourseLanguageIcon(normalizedLanguageKey)} alt={course.language ?? 'curso'} />
             </div>
             <span className="student-course-level">{displayLevel}</span>
           </div>

@@ -3,6 +3,10 @@ import React from "react";
 import { Link } from 'react-router-dom';
 import logo from '@/assets/branding/logo-paradigmia.png';
 import curso from '@/assets/icons/cursos.png';
+import hojasSuperiorDerecha from '@/assets/decor/hojas-superior-derecha.png';
+import hojasInferiorIzquierda from '@/assets/decor/hojas-inferior-izquierda.png';
+import { languageIcons } from '@/features/onboarding/languageIcons';
+import './LandingPage.css';
 
 const LandingPage: React.FC = () => {
   const courses = [
@@ -11,18 +15,25 @@ const LandingPage: React.FC = () => {
       description: "Aprende HTML, CSS, JavaScript y React desde cero.",
       level: "Principiante",
       duration: "8 semanas",
+      languages: [
+        { key: 'html', name: 'HTML' },
+        { key: 'css', name: 'CSS' },
+        { key: 'javascript', name: 'JavaScript' },
+      ],
     },
     {
       title: "Python",
       description: "Domina Python y desarrolla tus primeras aplicaciones.",
       level: "Principiante",
       duration: "6 semanas",
+      languages: [{ key: 'python', name: 'Python' }],
     },
     {
       title: "Bases de Datos",
       description: "Aprende SQL, consultas y administración de datos.",
       level: "Intermedio",
       duration: "5 semanas",
+      languages: [{ key: 'sql', name: 'SQL' }],
     },
   ];
 
@@ -48,18 +59,12 @@ const LandingPage: React.FC = () => {
     <div className="landing-page">
 
       {/* NAVBAR */}
-      <nav className="navbar navbar-expand-lg bg-white border-bottom">
+      <nav className="navbar navbar-expand-lg bg-white border-bottom landing-navbar">
         <div className="container py-2">
 
-          <a className="navbar-brand fw-bold" href="#">
-        
-              <img 
-                src={logo} 
-                alt="Logo" 
-                style={{ width: "180px", height: "auto" }} // Ajuste de tamaño de logo
-                />
-        
-          </a>
+          <Link className="navbar-brand fw-bold" to="/" aria-label="Paradigmia, inicio">
+            <img src={logo} alt="Paradigmia" className="landing-logo" />
+          </Link>
 
           <button
             className="navbar-toggler"
@@ -117,7 +122,13 @@ const LandingPage: React.FC = () => {
       </nav>
 
       {/* HERO */}
-      <section id="inicio" className="py-5 bg-light">
+      <section id="inicio" className="py-5 landing-hero">
+        <div className="landing-leaves landing-leaves-top" aria-hidden="true">
+          <img src={hojasSuperiorDerecha} alt="" />
+        </div>
+        <div className="landing-leaves landing-leaves-bottom" aria-hidden="true">
+          <img src={hojasInferiorIzquierda} alt="" />
+        </div>
         <div className="container py-lg-5">
           <div className="row align-items-center g-5">
 
@@ -170,14 +181,10 @@ const LandingPage: React.FC = () => {
             </div>
 
             <div className="col-lg-5">
-              <div className="card border-0 shadow-sm p-4">
+              <div className="card border-0 shadow-sm p-4 landing-feature-card">
                 <div className="card-body text-center">
-                  <div className="brand-icon mx-auto mb-4 d-flex align-items-center justify-content-cente">
-                   <img 
-                    src={curso} 
-                    alt="curso" 
-                    className="img-fluid"
-                    />
+                  <div className="landing-feature-icon mx-auto mb-4">
+                    <img src={curso} alt="" className="img-fluid" />
                   </div>
 
                   <h3 className="fw-bold">
@@ -189,25 +196,10 @@ const LandingPage: React.FC = () => {
                     en proyectos.
                   </p>
 
-                  <div className="border rounded p-3 text-start mt-4">
-                    <div className="d-flex justify-content-between mb-2">
-                      <span className="fw-semibold">
-                        Tu aprendizaje
-                      </span>
-                      <span className="text-body-secondary">
-                        En progreso
-                      </span>
-                    </div>
-
-                    <div className="progress" role="progressbar"
-                      aria-label="Ejemplo de progreso" aria-valuenow={70}
-                      aria-valuemin={0} aria-valuemax={100}>
-                      <div className="progress-bar" style={{ width: "70%" }}></div>
-                    </div>
-
-                    <small className="text-body-secondary mt-2 d-block">
-                      Cada paso cuenta para alcanzar tus objetivos.
-                    </small>
+                  <div className="landing-feature-points mt-4">
+                    <span>Aprendizaje práctico</span>
+                    <span>A tu propio ritmo</span>
+                    <span>Proyectos reales</span>
                   </div>
                 </div>
               </div>
@@ -218,7 +210,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* CURSOS */}
-      <section id="cursos" className="py-5">
+      <section id="cursos" className="py-5 landing-courses">
         <div className="container py-4">
 
           <div className="text-center mb-5">
@@ -236,14 +228,22 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="row g-4">
-            {courses.map((course, index) => (
-              <div className="col-md-6 col-lg-4" key={index}>
-                <div className="card h-100 shadow-sm">
+            {courses.map((course) => (
+              <div className="col-md-6 col-lg-4" key={course.title}>
+                <div className="card h-100 shadow-sm landing-course-card">
                   <div className="card-body p-4">
 
                     <span className="badge bg-secondary-subtle text-secondary mb-3">
                       {course.level}
                     </span>
+
+                    <div className="landing-course-languages">
+                      {course.languages.map((language) => (
+                        <span className="landing-language-icon" key={language.key} title={language.name}>
+                          <img src={languageIcons[language.key]} alt={language.name} />
+                        </span>
+                      ))}
+                    </div>
 
                     <h4 className="card-title fw-bold">
                       {course.title}
@@ -258,9 +258,9 @@ const LandingPage: React.FC = () => {
                         {course.duration}
                       </small>
 
-                      <a href="/courses" className="btn btn-outline-primary btn-sm">
+                      <Link to="/courses" className="btn btn-outline-primary btn-sm">
                         Ver curso
-                      </a>
+                      </Link>
                     </div>
 
                   </div>
@@ -270,16 +270,16 @@ const LandingPage: React.FC = () => {
           </div>
 
           <div className="text-center mt-5">
-            <a href="/courses" className="btn btn-primary">
+            <Link to="/courses" className="btn btn-primary">
               Ver todos los cursos
-            </a>
+            </Link>
           </div>
 
         </div>
       </section>
 
       {/* BENEFICIOS */}
-      <section id="beneficios" className="py-5 bg-light">
+      <section id="beneficios" className="py-5 landing-benefits">
         <div className="container py-4">
 
           <div className="text-center mb-5">
@@ -337,9 +337,9 @@ const LandingPage: React.FC = () => {
                 sólida en programación.
               </p>
 
-              <a href="/courses" className="btn btn-primary">
+              <Link to="/courses" className="btn btn-primary">
                 Descubrir recomendaciones
-              </a>
+              </Link>
             </div>
 
             <div className="col-lg-5">
@@ -371,7 +371,7 @@ const LandingPage: React.FC = () => {
       </section>
 
       {/* LLAMADO A LA ACCIÓN */}
-      <section className="py-5 bg-light">
+      <section className="py-5 landing-cta">
         <div className="container text-center py-4">
           <h2 className="fw-bold">
             Comienza a desarrollar tus habilidades hoy

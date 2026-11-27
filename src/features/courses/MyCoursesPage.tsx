@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { User } from '@supabase/supabase-js'
 import AppShell from '@/components/layout/AppShell'
-import { languageIcons } from '@/features/onboarding/languageIcons'
+import { getCourseLanguageIcon, normalizeCourseLanguageKey } from './courseLanguage'
 import {
   getBestExamScore,
   getCourseAcademicProgressForEnrollment,
@@ -28,23 +28,6 @@ interface EnrolledCourse {
   lessonsCompleted: number
   examScore: number | null
   examPassed: boolean
-}
-
-function normalizeLanguageKey(language: string | null): string {
-  const normalized = (language ?? '').trim().toLowerCase()
-
-  if (!normalized) return 'javascript'
-  if (normalized.includes('python')) return 'python'
-  if (normalized.includes('javascript') || normalized.includes('js')) return 'javascript'
-  if (normalized.includes('html')) return 'html'
-  if (normalized.includes('css')) return 'css'
-  if (normalized.includes('java')) return 'java'
-  if (normalized.includes('php')) return 'php'
-  if (normalized.includes('c++') || normalized.includes('cpp')) return 'cpp'
-  if (normalized.includes('c ')) return 'c'
-  if (normalized.includes('c')) return 'c'
-
-  return 'javascript'
 }
 
 export default function MyCoursesPage({ user, onLogout }: MyCoursesPageProps) {
@@ -92,7 +75,7 @@ export default function MyCoursesPage({ user, onLogout }: MyCoursesPageProps) {
               name: course.title,
               description: course.description ?? 'Sin descripción disponible.',
               level: course.level ?? 'Principiante',
-              language: course.language ?? 'JavaScript',
+              language: course.language ?? 'Otro',
               duration: course.duration_weeks ? `${course.duration_weeks} semana${course.duration_weeks === 1 ? '' : 's'}` : undefined,
               lessons: academicProgress.totalLessons,
               progress: academicProgress.progress,
@@ -175,13 +158,13 @@ export default function MyCoursesPage({ user, onLogout }: MyCoursesPageProps) {
         ) : (
           <div className="student-my-courses-grid">
             {enrolledCourses.map((course) => {
-              const normalizedLanguageKey = normalizeLanguageKey(course.language)
+              const normalizedLanguageKey = normalizeCourseLanguageKey(course.language)
 
               return (
                 <article className="student-my-course-card" key={course.id}>
                   <div className="student-catalog-card-top">
                     <div className="student-language-icon" aria-label={course.language}>
-                      <img src={languageIcons[normalizedLanguageKey]} alt={course.language} />
+                      <img src={getCourseLanguageIcon(normalizedLanguageKey)} alt={course.language} />
                     </div>
                     <span className="student-course-level">{course.level}</span>
                   </div>
