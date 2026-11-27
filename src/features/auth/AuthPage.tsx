@@ -42,10 +42,6 @@ export default function AuthPage({ mode, onSignIn, onSignUp }: AuthPageProps) {
           <img src={hojasInferiorDerecha} alt="" />
         </div>
 
-        <div className="auth-hero-visual" aria-hidden="true">
-          <img src={mascotaSerpiente} alt="" />
-        </div>
-
         <section className="auth-form" key={mode}>
           <h1 className="auth-form-title">
             {mode === 'register' ? 'Crea tu cuenta' : 'Inicia sesión'}
