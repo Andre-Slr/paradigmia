@@ -6,6 +6,7 @@ import java from '@/assets/languages/java.svg'
 import javascript from '@/assets/languages/javascript.svg'
 import php from '@/assets/languages/php.svg'
 import python from '@/assets/languages/python.svg'
+import sql from '@/assets/languages/sql.svg'
 
 export const languageIcons: Record<string, string> = {
   c,
@@ -16,4 +17,5 @@ export const languageIcons: Record<string, string> = {
   javascript,
   php,
   python,
+  sql,
 }

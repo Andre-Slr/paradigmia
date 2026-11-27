@@ -1,0 +1,213 @@
+.landing-page {
+  min-height: 100vh;
+  overflow: hidden;
+  background: #fff;
+}
+
+.landing-navbar {
+  position: relative;
+  z-index: 2;
+  border-color: rgba(25, 53, 12, 0.1) !important;
+}
+
+.landing-navbar > .container {
+  max-width: 1100px;
+}
+
+.landing-logo {
+  display: block;
+  width: 180px;
+  height: auto;
+}
+
+.landing-hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse at 82% 18%, rgba(111, 169, 187, 0.2), transparent 36%),
+    linear-gradient(135deg, rgba(111, 169, 187, 0.2), rgba(64, 103, 104, 0.12), rgba(104, 125, 49, 0.12));
+}
+
+.landing-hero > .container {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-leaves {
+  position: absolute;
+  z-index: 0;
+  width: clamp(150px, 22vw, 300px);
+  opacity: 0.2;
+  pointer-events: none;
+}
+
+.landing-leaves img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.landing-leaves-top {
+  top: 0;
+  right: -40px;
+}
+
+.landing-leaves-bottom {
+  bottom: -65px;
+  left: -60px;
+  transform: rotate(12deg);
+}
+
+.landing-feature-card,
+.landing-course-card,
+.landing-benefits .card {
+  border: 1px solid rgba(25, 53, 12, 0.08);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 18px 40px rgba(25, 53, 12, 0.08) !important;
+}
+
+.landing-feature-icon {
+  display: grid;
+  width: 96px;
+  height: 96px;
+  place-items: center;
+  border-radius: 28px;
+  background: rgba(104, 125, 49, 0.1);
+}
+
+.landing-feature-icon img {
+  max-width: 64px;
+  max-height: 64px;
+  object-fit: contain;
+}
+
+.landing-feature-points {
+  display: grid;
+  gap: 10px;
+  text-align: left;
+}
+
+.landing-feature-points span {
+  position: relative;
+  padding: 11px 14px 11px 38px;
+  border-radius: 14px;
+  background: rgba(213, 211, 204, 0.28);
+  color: var(--bs-primary);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.landing-feature-points span::before {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--verde-mostaza);
+  content: '';
+  transform: translateY(-50%);
+}
+
+.landing-courses {
+  background: rgba(213, 211, 204, 0.34);
+}
+
+.landing-course-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.landing-course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 22px 44px rgba(25, 53, 12, 0.12) !important;
+}
+
+.landing-course-languages {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 18px;
+}
+
+.landing-language-icon {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(25, 53, 12, 0.08);
+  border-radius: 13px;
+  background: #fff;
+}
+
+.landing-language-icon img {
+  display: block;
+  width: 27px;
+  height: 27px;
+  object-fit: contain;
+}
+
+.landing-course-card .card-title {
+  margin-bottom: 12px;
+}
+
+.landing-course-card .card-text {
+  min-height: 3.25rem;
+  line-height: 1.65;
+}
+
+.landing-benefits {
+  background: rgba(213, 211, 204, 0.16);
+}
+
+.landing-cta {
+  background:
+    radial-gradient(ellipse at 10% 100%, rgba(104, 125, 49, 0.16), transparent 36%),
+    linear-gradient(120deg, rgba(111, 169, 187, 0.2), rgba(64, 103, 104, 0.1), rgba(104, 125, 49, 0.1));
+}
+
+.landing-page footer {
+  background: #fff;
+  border-color: rgba(25, 53, 12, 0.1) !important;
+}
+
+@media (max-width: 991.98px) {
+  .landing-navbar .navbar-collapse {
+    padding-top: 16px;
+  }
+
+  .landing-navbar .navbar-nav {
+    margin-bottom: 12px !important;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .landing-logo {
+    width: 150px;
+  }
+
+  .landing-hero {
+    padding-top: 2rem !important;
+  }
+
+  .landing-leaves {
+    width: 170px;
+    opacity: 0.12;
+  }
+
+  .landing-leaves-bottom {
+    bottom: -35px;
+    left: -70px;
+  }
+
+  .landing-course-card .card-text {
+    min-height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-course-card {
+    transition: none;
+  }
+}

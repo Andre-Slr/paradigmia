@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <path d="M10 15c0-5 10-9 22-9s22 4 22 9-10 9-22 9-22-4-22-9Z" fill="#687D31"/>
+  <path d="M10 15v31c0 5 10 9 22 9s22-4 22-9V15" stroke="#19350C" stroke-width="4"/>
+  <path d="M10 30c0 5 10 9 22 9s22-4 22-9M10 45c0 5 10 9 22 9s22-4 22-9" stroke="#19350C" stroke-width="4"/>
+  <text x="32" y="19" fill="#fff" font-family="Arial, sans-serif" font-size="8" font-weight="700" text-anchor="middle">SQL</text>
+</svg>
