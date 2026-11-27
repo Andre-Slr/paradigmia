@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import AppShell from '@/components/layout/AppShell'
 import mascot from '@/assets/branding/mascota-estudiando.png'
 import {
@@ -55,7 +55,6 @@ export default function ExamPage({ user, onLogout }: ExamPageProps) {
   const [examPassed, setExamPassed] = useState(false)
   const [bestExamScore, setBestExamScore] = useState<number | null>(null)
   const [isExamUnlocked, setIsExamUnlocked] = useState(false)
-  const [unlockMessage, setUnlockMessage] = useState<string | null>(null)
   const [latestAttemptId, setLatestAttemptId] = useState<string | null>(null)
   const [hasSubmittedExam, setHasSubmittedExam] = useState(false)
   const [showExamReview, setShowExamReview] = useState(false)
@@ -157,15 +156,9 @@ export default function ExamPage({ user, onLogout }: ExamPageProps) {
           setExamPassed(Boolean(academicProgress?.examPassed || (bestAttempt && typeof examData.passing_score === 'number' && Number(bestAttempt.score ?? 0) >= Number(examData.passing_score))))
           setBestExamScore(bestAttempt?.score ?? null)
           setIsExamUnlocked(isUnlocked)
-          setUnlockMessage(
-            isUnlocked
-              ? null
-              : 'Completa todas las lecciones y aprueba las actividades del curso antes de acceder al examen final.'
-          )
         } else {
           setIsEnrolled(false)
           setIsExamUnlocked(false)
-          setUnlockMessage('Inicia sesión y completa los requisitos del curso para desbloquear el examen.')
         }
       } catch (loadError) {
         if (!active) return
@@ -369,17 +362,7 @@ export default function ExamPage({ user, onLogout }: ExamPageProps) {
   }
 
   if (!isExamUnlocked) {
-    return (
-      <AppShell onLogout={handleLogout}>
-        <div className="student-empty-state student-detail-empty">
-          <h2>Examen bloqueado</h2>
-          <p>{unlockMessage ?? 'Completa todas las lecciones y actividades del curso antes de iniciar el examen final.'}</p>
-          <Link to={`/courses/${course.slug}`} className="student-back-link">
-            Volver al curso
-          </Link>
-        </div>
-      </AppShell>
-    )
+    return <Navigate to={`/courses/${course.slug}`} replace />
   }
 
   const renderReviewSection = () => {

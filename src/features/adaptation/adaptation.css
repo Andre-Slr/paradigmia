@@ -179,6 +179,11 @@
   transform: translateY(-1px);
 }
 
+.student-session-step.is-locked {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .student-session-step-number {
   display: inline-flex;
   align-items: center;

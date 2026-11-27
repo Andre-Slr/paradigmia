@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '@/components/layout/AppShell'
 import Toast, { type StudentToastMessage } from '@/components/Toast'
 import { getCourseLanguageIcon, normalizeCourseLanguageKey } from './courseLanguage'
-import { planCourse } from '@/features/adaptation/adaptation'
+import { pathForStudent, planCourse } from '@/features/adaptation/adaptation'
 import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
 import { findNextStep, planStudySession, type SessionPlan } from '@/features/adaptation/ruleInterpreter'
 import '@/features/adaptation/adaptation.css'
@@ -291,6 +291,37 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
     () => learningSequence.filter((step) => !step.lessonId || !optionalLessonIds.has(step.lessonId)),
     [learningSequence, optionalLessonIds],
   )
+  const isFinalExamUnlocked =
+    currentIsEnrolled &&
+    lessons.every((lesson) => completedLessonIds.includes(lesson.id)) &&
+    assessments
+      .filter((assessment) => !isExamAssessment(assessment))
+      .every((activity) => completedActivityIds.includes(activity.id))
+  const getBlockingPreviousStep = (stepId: string) => {
+    if (!currentIsEnrolled) return null
+
+    const currentStep = learningSequence.find((step) => step.id === stepId)
+    if (currentStep?.type === 'exam' && !isFinalExamUnlocked) {
+      return learningSequence.find((step) =>
+        step.type === 'lesson'
+          ? !completedLessonIds.includes(step.id)
+          : step.type === 'activity' && !completedActivityIds.includes(step.id),
+      ) ?? null
+    }
+
+    const studentPath = pathForStudent(learningSequence, course, learnerProfile, stepId)
+    const currentIndex = studentPath.findIndex((step) => step.id === stepId)
+    if (currentIndex <= 0) return null
+
+    const previousStep = studentPath[currentIndex - 1]
+    const isPreviousStepComplete = previousStep.type === 'lesson'
+      ? completedLessonIds.includes(previousStep.id)
+      : previousStep.type === 'activity'
+        ? completedActivityIds.includes(previousStep.id)
+        : examPassed
+
+    return isPreviousStepComplete ? null : previousStep
+  }
   const completedLessonsCount = lessons.filter((lesson) => completedLessonIds.includes(lesson.id)).length
   const isCourseComplete =
     currentIsEnrolled &&
@@ -671,17 +702,36 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
               <strong>{sessionPlan.review ? 'Repaso antes de continuar' : 'Tu plan para hoy'}</strong>
               {sessionPlan.message && <p>{sessionPlan.message}</p>}
               <ol className="student-session-steps">
-                {sessionPlan.steps.map((step, index) => (
-                  <li key={step.id}>
-                    <Link to={step.url} className="student-session-step">
+                {sessionPlan.steps.map((step, index) => {
+                  const blockingStep = getBlockingPreviousStep(step.id)
+                  const stepContent = (
+                    <>
                       <span className="student-session-step-number">{index + 1}</span>
                       <span className="student-session-step-title">{step.title}</span>
                       <span className="student-session-step-type">
                         {step.type === 'lesson' ? 'Lección' : step.type === 'activity' ? 'Actividad' : 'Examen'}
                       </span>
-                    </Link>
-                  </li>
-                ))}
+                    </>
+                  )
+
+                  return (
+                    <li key={step.id}>
+                      {blockingStep ? (
+                        <span
+                          className="student-session-step is-locked"
+                          aria-disabled="true"
+                          title={`Completa primero: ${blockingStep.title}`}
+                        >
+                          {stepContent}
+                        </span>
+                      ) : (
+                        <Link to={step.url} className="student-session-step">
+                          {stepContent}
+                        </Link>
+                      )}
+                    </li>
+                  )
+                })}
               </ol>
             </div>
           )}
@@ -704,6 +754,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                 const lessonIdentifier = lesson.slug ?? lesson.id
                 const tag = coursePlan?.tags[lesson.id]
                 const isCompletedLesson = currentIsEnrolled && completedLessonIds.includes(lesson.id)
+                const blockingStep = getBlockingPreviousStep(lesson.id)
                 const lessonContent = (
                   <>
                     <div className="student-lesson-number">0{index + 1}</div>
@@ -713,6 +764,11 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                       {!currentIsEnrolled && (
                         <span className="student-lesson-status is-locked">
                           {currentEnrollmentLoading ? 'Verificando inscripción…' : 'Inscríbete para acceder'}
+                        </span>
+                      )}
+                      {blockingStep && (
+                        <span className="student-lesson-status is-locked">
+                          Completa primero: {blockingStep.title}
                         </span>
                       )}
                     </div>
@@ -734,7 +790,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                 )
 
                 return (
-                  currentIsEnrolled ? (
+                  currentIsEnrolled && !blockingStep ? (
                     <Link
                       key={lesson.id}
                       className="student-lesson-item"
@@ -769,6 +825,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
               {activities.map((activity, index) => {
                 const activityIdentifier = activity.slug ?? activity.id
                 const isCompletedActivity = currentIsEnrolled && completedActivityIds.includes(activity.id)
+                const blockingStep = getBlockingPreviousStep(activity.id)
                 const activityContent = (
                   <>
                     <div className="student-lesson-number">A{index + 1}</div>
@@ -778,6 +835,11 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                       {!currentIsEnrolled && (
                         <span className="student-lesson-status is-locked">
                           {currentEnrollmentLoading ? 'Verificando inscripción…' : 'Inscríbete para acceder'}
+                        </span>
+                      )}
+                      {blockingStep && (
+                        <span className="student-lesson-status is-locked">
+                          Completa primero: {blockingStep.title}
                         </span>
                       )}
                     </div>
@@ -790,7 +852,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                 )
 
                 return (
-                  currentIsEnrolled ? (
+                  currentIsEnrolled && !blockingStep ? (
                     <Link
                       key={activity.id}
                       className="student-lesson-item"
@@ -820,35 +882,37 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
               <h2>Examen final no disponible</h2>
               <p>Este curso todavía no tiene un examen final publicado.</p>
             </div>
-          ) : (
-            currentIsEnrolled ? (
-              <Link to={`/courses/${course.slug}/exam`} className="student-lesson-item">
-                <div className="student-lesson-number">EF</div>
-                <div className="student-lesson-copy">
-                  <strong>{finalExam.title ?? 'Examen final del curso'}</strong>
-                  <span>{finalExam.description ?? 'Accede al examen final de este curso.'}</span>
-                </div>
-                {finalExamScore !== null && (
-                  <div className="student-lesson-item-badges">
-                    <span className="student-lesson-status">✓ Completado</span>
-                    <span className="student-lesson-status is-score">
-                      Puntaje: {finalExamScore.toLocaleString('es-MX', { maximumFractionDigits: 2 })}%
-                    </span>
-                  </div>
-                )}
-              </Link>
-            ) : (
-              <div className="student-lesson-item is-locked" aria-disabled="true">
-                <div className="student-lesson-number">EF</div>
-                <div className="student-lesson-copy">
-                  <strong>{finalExam.title ?? 'Examen final del curso'}</strong>
-                  <span>{finalExam.description ?? 'Accede al examen final de este curso.'}</span>
-                  <span className="student-lesson-status is-locked">
-                    {currentEnrollmentLoading ? 'Verificando inscripción…' : 'Inscríbete para acceder'}
+          ) : currentIsEnrolled && isFinalExamUnlocked ? (
+            <Link to={`/courses/${course.slug}/exam`} className="student-lesson-item">
+              <div className="student-lesson-number">EF</div>
+              <div className="student-lesson-copy">
+                <strong>{finalExam.title ?? 'Examen final del curso'}</strong>
+                <span>{finalExam.description ?? 'Accede al examen final de este curso.'}</span>
+              </div>
+              {finalExamScore !== null && (
+                <div className="student-lesson-item-badges">
+                  <span className="student-lesson-status">✓ Completado</span>
+                  <span className="student-lesson-status is-score">
+                    Puntaje: {finalExamScore.toLocaleString('es-MX', { maximumFractionDigits: 2 })}%
                   </span>
                 </div>
+              )}
+            </Link>
+          ) : (
+            <div className="student-lesson-item is-locked" aria-disabled="true">
+              <div className="student-lesson-number">EF</div>
+              <div className="student-lesson-copy">
+                <strong>{finalExam.title ?? 'Examen final del curso'}</strong>
+                <span>{finalExam.description ?? 'Accede al examen final de este curso.'}</span>
+                <span className="student-lesson-status is-locked">
+                  {!currentIsEnrolled
+                    ? currentEnrollmentLoading
+                      ? 'Verificando inscripción…'
+                      : 'Inscríbete para acceder'
+                    : 'Completa todas las lecciones y aprueba las actividades para desbloquear el examen.'}
+                </span>
               </div>
-            )
+            </div>
           )}
         </section>
 

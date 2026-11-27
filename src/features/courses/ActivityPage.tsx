@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import AppShell from '@/components/layout/AppShell'
 import mascot from '@/assets/branding/mascota-estudiando.png'
 import {
@@ -66,6 +66,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
   const [passedActivityIds, setPassedActivityIds] = useState<string[]>([])
   const [examPassed, setExamPassed] = useState(false)
   const [previousLessonCompleted, setPreviousLessonCompleted] = useState(true)
+  const [checkedPreviousLessonKey, setCheckedPreviousLessonKey] = useState<string | null>(null)
   const [latestApprovedScore, setLatestApprovedScore] = useState<number | null>(null)
   const [persistedAnswers, setPersistedAnswers] = useState<Record<string, string>>({})
   const [attemptReview, setAttemptReview] = useState<Record<string, AttemptReviewEntry>>({})
@@ -253,6 +254,10 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
   const currentSequenceIndex = activity ? studentPath.findIndex((item) => item.type === 'activity' && item.id === activity.id) : -1
   const previousStep = currentSequenceIndex > 0 ? studentPath[currentSequenceIndex - 1] ?? null : null
   const nextStep = currentSequenceIndex >= 0 ? studentPath[currentSequenceIndex + 1] ?? null : null
+  const previousLessonCheckKey =
+    course && previousStep?.type === 'lesson' ? `${course.id}:${previousStep.id}` : null
+  const previousLessonCheckPending =
+    previousLessonCheckKey !== null && checkedPreviousLessonKey !== previousLessonCheckKey
 
   // R8 · Repaso por intentos: solo cuenta esta actividad mientras no esté aprobada.
   const reviewNeeded =
@@ -270,13 +275,11 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
 
     const currentCourse = course
     const currentUserId = user.id
-    const currentLessonPrerequisite = previousStep && previousStep.type === 'lesson' ? previousStep : null
-
-    if (!currentCourse || !currentUserId || !currentLessonPrerequisite) {
+    if (!currentCourse || !currentUserId || !previousLessonCheckKey || !previousStep || previousStep.type !== 'lesson') {
       return
     }
 
-    const lessonPrerequisiteId = currentLessonPrerequisite.id
+    const lessonPrerequisiteId = previousStep.id
     let active = true
 
     async function loadPreviousLessonCompletion() {
@@ -300,6 +303,10 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
             : 'No se pudo comprobar si la lección anterior está completada.'
         )
         setPreviousLessonCompleted(false)
+      } finally {
+        if (active) {
+          setCheckedPreviousLessonKey(previousLessonCheckKey)
+        }
       }
     }
 
@@ -308,7 +315,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
     return () => {
       active = false
     }
-  }, [course, previousStep, user.id])
+  }, [course, previousLessonCheckKey, previousStep, user.id])
 
   const previousStepCompleted = !course || !user.id || !previousStep
     ? true
@@ -443,7 +450,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
     )
   }
 
-  if (loading) {
+  if (loading || previousLessonCheckPending) {
     return (
       <AppShell onLogout={handleLogout}>
         <div className="student-empty-state student-detail-empty">
@@ -497,29 +504,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
   }
 
   if (!isEnrolled || isBlockedByPrerequisite) {
-    const lockedTitle = !isEnrolled ? 'Debes inscribirte para continuar' : 'Contenido bloqueado'
-    const lockedMessage = !isEnrolled
-      ? 'Necesitas inscribirte en este curso antes de responder sus actividades.'
-      : `Debes completar "${previousStep?.title ?? 'el contenido anterior'}" antes de acceder a esta actividad.`
-    const lockedActionLabel = !isEnrolled ? 'Volver al curso' : 'Volver al contenido anterior'
-    const lockedActionUrl = !isEnrolled ? `/courses/${course.slug}` : previousStep?.url ?? `/courses/${course.slug}`
-
-    return (
-      <AppShell onLogout={handleLogout}>
-        <div className="student-content-locked">
-          <div className="student-locked-banner">
-            <div className="student-lock-badge" aria-hidden="true">🔒</div>
-            <div className="student-lock-copy">
-              <h2>{lockedTitle}</h2>
-              <p>{lockedMessage}</p>
-              <Link to={lockedActionUrl} className="student-back-link">
-                {lockedActionLabel}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </AppShell>
-    )
+    return <Navigate to={`/courses/${course.slug}`} replace />
   }
 
   return (
