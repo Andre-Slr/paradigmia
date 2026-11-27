@@ -1037,8 +1037,7 @@
   gap: 12px;
 }
 
-.student-course-enrollment-actions,
-.student-course-action-confirmation-buttons {
+.student-course-enrollment-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -1051,25 +1050,86 @@
   font-weight: 800;
 }
 
-.student-course-action-confirmation {
-  width: 100%;
-  padding: 16px;
+.student-course-action-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(460px, calc(100% - 32px));
+  max-width: 100%;
+  margin: auto;
+  padding: 24px;
   border: 1px solid rgba(25, 53, 12, 0.14);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.88);
+  border-radius: 20px;
+  background: var(--student-card);
+  box-shadow: var(--student-shadow);
+  color: var(--student-dark-green);
 }
 
-.student-course-action-confirmation > p {
+.student-course-action-dialog::backdrop {
+  background: rgba(25, 53, 12, 0.5);
+}
+
+.student-course-action-dialog h2 {
   margin: 0 0 12px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.student-course-action-dialog > p {
+  margin: 0 0 20px;
+  line-height: 1.6;
 }
 
 .student-course-enrollment-actions > .student-catalog-action,
 .student-course-enrollment-actions > .student-button,
 .student-course-enrollment-actions > .student-button-secondary,
-.student-course-action-confirmation-buttons > .student-button,
-.student-course-action-confirmation-buttons > .student-button-secondary {
+.student-course-action-dialog-buttons > .student-button,
+.student-course-action-dialog-buttons > .student-button-secondary {
   width: auto;
   max-width: 100%;
+}
+
+.student-course-action-dialog-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.student-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: min(440px, calc(100vw - 40px));
+  padding: 14px 16px;
+  border: 1px solid rgba(25, 53, 12, 0.12);
+  border-radius: 14px;
+  background: var(--student-card);
+  box-shadow: var(--student-shadow);
+  color: var(--student-dark-green);
+  font-weight: 700;
+}
+
+.student-toast.is-success {
+  border-left: 5px solid var(--student-olive);
+}
+
+.student-toast.is-error {
+  border-left: 5px solid #a33535;
+}
+
+.student-toast button {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
 }
 
 .student-course-detail-body p {
@@ -1149,12 +1209,14 @@
   min-width: 0;
 }
 
-.student-lesson-title-row {
+.student-lesson-item-badges {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 8px 12px;
+  flex-shrink: 0;
+  gap: 8px;
+  margin-left: auto;
 }
 
 .student-lesson-status {
@@ -1176,6 +1238,21 @@
 .student-lesson-status.is-pending {
   background: rgba(64, 103, 104, 0.1);
   color: var(--student-teal);
+}
+
+.student-lesson-status.is-score {
+  background: rgba(64, 103, 104, 0.1);
+  color: var(--student-teal);
+}
+
+.student-lesson-item-badges .student-lesson-status,
+.student-lesson-item-badges .student-lesson-tag {
+  align-self: center;
+  white-space: nowrap;
+}
+
+.student-lesson-item-badges .student-lesson-tag {
+  margin-left: 0;
 }
 
 .student-lesson-copy strong {
@@ -1306,6 +1383,11 @@
 .student-activity-footer > .student-catalog-action {
   width: auto;
   max-width: 100%;
+}
+
+.student-lesson-actions > .student-catalog-action,
+.student-lesson-actions > .student-button-secondary {
+  align-self: flex-start;
 }
 
 .student-lesson-save-message {
@@ -1674,6 +1756,15 @@
 
   .student-progress-item {
     flex-wrap: wrap;
+  }
+
+  .student-lesson-item {
+    flex-wrap: wrap;
+  }
+
+  .student-lesson-item-badges {
+    flex: 0 1 calc(100% - 60px);
+    margin-left: 60px;
   }
 
   .student-content-status {

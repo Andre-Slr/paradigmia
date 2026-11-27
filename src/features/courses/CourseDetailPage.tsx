@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '@/components/layout/AppShell'
+import Toast, { type StudentToastMessage } from '@/components/Toast'
 import { languageIcons } from '@/features/onboarding/languageIcons'
 import { planCourse } from '@/features/adaptation/adaptation'
 import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
@@ -13,6 +14,7 @@ import {
   getAssessmentAttemptsForEnrollment,
   getCourseAcademicProgressForEnrollment,
   getCourseEnrollment,
+  getBestExamScore,
   getPublishedCourseAssessments,
   getPublishedCourseBySlug,
   getPublishedCourseLessons,
@@ -74,7 +76,10 @@ function isExamAssessment(assessment: Pick<PublishedAssessmentRecord, 'kind' | '
 
 export default function CourseDetailPage({ user, onLogout }: CourseDetailPageProps) {
   const { courseId } = useParams()
+  const location = useLocation()
   const navigate = useNavigate()
+  const confirmationDialogRef = useRef<HTMLDialogElement | null>(null)
+  const toastIdRef = useRef(0)
   const [course, setCourse] = useState<PublishedCourseRecord | null>(null)
   const [lessons, setLessons] = useState<PublishedLessonRecord[]>([])
   const [assessments, setAssessments] = useState<PublishedAssessmentRecord[]>([])
@@ -82,12 +87,9 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
   const [enrollmentCourseId, setEnrollmentCourseId] = useState<string | null>(null)
   const [enrollmentLoading, setEnrollmentLoading] = useState(true)
   const [enrollmentSubmitting, setEnrollmentSubmitting] = useState(false)
-  const [enrollmentError, setEnrollmentError] = useState<string | null>(null)
   const [courseActionConfirmation, setCourseActionConfirmation] = useState<'restart' | 'delete' | null>(null)
   const [courseActionSubmitting, setCourseActionSubmitting] = useState(false)
-  const [courseActionError, setCourseActionError] = useState<string | null>(null)
-  const [courseActionMessage, setCourseActionMessage] = useState<string | null>(null)
-  const [continueLearningError, setContinueLearningError] = useState<string | null>(null)
+  const [courseToast, setCourseToast] = useState<StudentToastMessage | null>(null)
   const [continueLearningLoading, setContinueLearningLoading] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -99,13 +101,25 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
   const [completedLessonIds, setCompletedLessonIds] = useState<string[]>([])
   const [completedActivityIds, setCompletedActivityIds] = useState<string[]>([])
   const [examPassed, setExamPassed] = useState(false)
+  const [finalExamScore, setFinalExamScore] = useState<number | null>(null)
   const [progressRevision, setProgressRevision] = useState(0)
+  const routeToast = (location.state as { courseToast?: StudentToastMessage } | null)?.courseToast ?? null
+  const visibleToast = routeToast ?? courseToast
+  const showToast = useCallback((message: string, type: StudentToastMessage['type']): StudentToastMessage => {
+    const toast = { id: ++toastIdRef.current, message, type }
+    setCourseToast(toast)
+    return toast
+  }, [])
+  const dismissToast = useCallback(() => {
+    setCourseToast(null)
+    if (routeToast) {
+      navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null })
+    }
+  }, [location.hash, location.pathname, location.search, navigate, routeToast])
   const currentIsEnrolled = Boolean(course && enrollmentCourseId === course.id && isEnrolled)
   const currentEnrollmentLoading = Boolean(
     course && (enrollmentCourseId !== course.id || enrollmentLoading),
   )
-  const currentEnrollmentError =
-    course && enrollmentCourseId === course.id ? enrollmentError : null
   const continueLearningTarget =
     course && continueLearningState?.courseId === course.id
       ? continueLearningState.target
@@ -114,6 +128,13 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
     course && continueLearningState?.courseId === course.id
       ? continueLearningState.sessionPlan
       : null
+
+  useEffect(() => {
+    const dialog = confirmationDialogRef.current
+    if (courseActionConfirmation && dialog && !dialog.open) {
+      dialog.showModal()
+    }
+  }, [courseActionConfirmation])
 
   useEffect(() => {
     if (!courseId) {
@@ -185,10 +206,10 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
     async function loadEnrollmentStatus() {
       try {
         setEnrollmentLoading(true)
-        setEnrollmentError(null)
         setCompletedLessonIds([])
         setCompletedActivityIds([])
         setExamPassed(false)
+        setFinalExamScore(null)
 
         const existingEnrollment = await getCourseEnrollment(user.id, currentCourseId)
 
@@ -197,28 +218,49 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
         setIsEnrolled(Boolean(existingEnrollment))
 
         if (existingEnrollment) {
-          const academicProgress = await getCourseAcademicProgressForEnrollment(existingEnrollment.id, currentCourseId)
+          const [academicProgressResult, examScoreResult] = await Promise.allSettled([
+            getCourseAcademicProgressForEnrollment(existingEnrollment.id, currentCourseId),
+            getBestExamScore(existingEnrollment.id, currentCourseId),
+          ])
           if (!active) return
+          if (academicProgressResult.status === 'rejected') {
+            throw academicProgressResult.reason
+          }
+
+          const academicProgress = academicProgressResult.value
           setCompletedLessonIds(academicProgress.completedLessonIds)
           setCompletedActivityIds(academicProgress.passedActivityIds ?? [])
           setExamPassed(academicProgress.examPassed)
+          if (examScoreResult.status === 'fulfilled') {
+            setFinalExamScore(examScoreResult.value)
+          } else {
+            showToast(
+              examScoreResult.reason instanceof Error
+                ? `No se pudo consultar la nota del examen: ${examScoreResult.reason.message}`
+                : 'No se pudo consultar la nota del examen.',
+              'error',
+            )
+          }
         } else {
           setCompletedLessonIds([])
           setCompletedActivityIds([])
           setExamPassed(false)
+          setFinalExamScore(null)
         }
       } catch (loadError) {
         if (!active) return
         setEnrollmentCourseId(currentCourseId)
-        setEnrollmentError(
+        showToast(
           loadError instanceof Error
             ? loadError.message
-            : 'No se pudo comprobar tu inscripción en este curso.'
+            : 'No se pudo comprobar tu inscripción en este curso.',
+          'error',
         )
         setIsEnrolled(false)
         setCompletedLessonIds([])
         setCompletedActivityIds([])
         setExamPassed(false)
+        setFinalExamScore(null)
       } finally {
         if (active) {
           setEnrollmentLoading(false)
@@ -231,7 +273,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
     return () => {
       active = false
     }
-  }, [course, user?.id])
+  }, [course, showToast, user?.id])
 
   const normalizedLanguageKey = useMemo(() => normalizeLanguageKey(course?.language ?? null), [course?.language])
   const displayLevel = useMemo(() => normalizeLevel(course?.level ?? null), [course?.level])
@@ -286,7 +328,6 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
 
     async function loadContinueSequence() {
       setContinueLearningLoading(true)
-      setContinueLearningError(null)
       try {
         const enrollment = await getCourseEnrollment(user.id, currentCourseId)
         const [academicProgress, attempts] = enrollment
@@ -319,10 +360,11 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
           target: null,
           sessionPlan: null,
         })
-        setContinueLearningError(
+        showToast(
           loadError instanceof Error
             ? loadError.message
             : 'No se pudo determinar el siguiente paso del curso.',
+          'error',
         )
       } finally {
         if (active) {
@@ -336,7 +378,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
     return () => {
       active = false
     }
-  }, [course, currentIsEnrolled, learnerProfile.tiempoSesion, progressRevision, requiredLearningSequence, user?.id])
+  }, [course, currentIsEnrolled, learnerProfile.tiempoSesion, progressRevision, requiredLearningSequence, showToast, user?.id])
 
   const activities = useMemo(() => {
     return assessments.filter((assessment) => !isExamAssessment(assessment))
@@ -348,14 +390,12 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
 
   async function handleEnrollment(): Promise<void> {
     if (!course?.id || !user?.id) {
-      setEnrollmentError('No se pudo completar la inscripción porque faltan datos del usuario o del curso.')
+      showToast('No se pudo completar la inscripción porque faltan datos del usuario o del curso.', 'error')
       return
     }
 
     try {
       setEnrollmentSubmitting(true)
-      setEnrollmentError(null)
-      setCourseActionMessage(null)
 
       const existingEnrollment = await getCourseEnrollment(user.id, course.id)
       if (existingEnrollment) {
@@ -367,12 +407,14 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
       await createCourseEnrollment(user.id, course.id)
       setEnrollmentCourseId(course.id)
       setIsEnrolled(true)
+      setFinalExamScore(null)
     } catch (submitError) {
       if (course) setEnrollmentCourseId(course.id)
-      setEnrollmentError(
+      showToast(
         submitError instanceof Error
           ? submitError.message
-          : 'No se pudo completar la inscripción en este momento.'
+          : 'No se pudo completar la inscripción en este momento.',
+        'error',
       )
     } finally {
       setEnrollmentSubmitting(false)
@@ -386,24 +428,24 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
 
     try {
       setCourseActionSubmitting(true)
-      setCourseActionError(null)
-      setCourseActionMessage(null)
 
       if (courseActionConfirmation === 'restart') {
         await resetCourseProgress(course.id)
         setCompletedLessonIds([])
         setCompletedActivityIds([])
         setExamPassed(false)
+        setFinalExamScore(null)
         setContinueLearningState(null)
-        setContinueLearningError(null)
         setProgressRevision((revision) => revision + 1)
         setCourseActionConfirmation(null)
 
         const firstLesson = lessons[0]
+        const toast = showToast('Se reinició el progreso del curso.', 'success')
         navigate(
           firstLesson
             ? `/courses/${course.slug}/lessons/${firstLesson.slug ?? firstLesson.id}`
             : `/courses/${course.slug}`,
+          { state: { courseToast: toast } },
         )
         return
       }
@@ -414,15 +456,17 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
       setCompletedLessonIds([])
       setCompletedActivityIds([])
       setExamPassed(false)
+      setFinalExamScore(null)
       setContinueLearningState(null)
-      setContinueLearningError(null)
       setCourseActionConfirmation(null)
-      setCourseActionMessage('Se eliminó tu inscripción y el progreso asociado a este curso.')
+      showToast('Se eliminó tu inscripción y el progreso asociado a este curso.', 'success')
     } catch (actionError) {
-      setCourseActionError(
+      setCourseActionConfirmation(null)
+      showToast(
         actionError instanceof Error
           ? actionError.message
           : 'No se pudo completar la acción para este curso.',
+        'error',
       )
     } finally {
       setCourseActionSubmitting(false)
@@ -517,10 +561,6 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
             </div>
 
             <div className="student-course-enrollment-block">
-              {currentEnrollmentError && <p className="student-form-error">{currentEnrollmentError}</p>}
-              {courseActionMessage && (
-                <p className="student-form-success" role="status">{courseActionMessage}</p>
-              )}
               {currentIsEnrolled ? (
                 <div className="student-course-enrollment-actions">
                   {isCourseComplete ? (
@@ -531,10 +571,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                       <button
                         type="button"
                         className="student-catalog-action student-catalog-link"
-                        onClick={() => {
-                          setCourseActionError(null)
-                          setCourseActionConfirmation('restart')
-                        }}
+                        onClick={() => setCourseActionConfirmation('restart')}
                       >
                         Volver a cursar
                       </button>
@@ -557,17 +594,11 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                       <button
                         type="button"
                         className="student-button-secondary"
-                        onClick={() => {
-                          setCourseActionError(null)
-                          setCourseActionConfirmation('delete')
-                        }}
+                        onClick={() => setCourseActionConfirmation('delete')}
                       >
                         Eliminar registro
                       </button>
                     </>
-                  )}
-                  {continueLearningError && !isCourseComplete && (
-                    <p className="student-form-error" role="alert">{continueLearningError}</p>
                   )}
                 </div>
               ) : (
@@ -586,14 +617,25 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
               )}
 
               {courseActionConfirmation && (
-                <div className="student-course-action-confirmation" role="alert">
-                  <p>
+                <dialog
+                  ref={confirmationDialogRef}
+                  className="student-course-action-dialog"
+                  aria-labelledby="course-action-dialog-title"
+                  aria-describedby="course-action-dialog-description"
+                  onCancel={(event) => {
+                    event.preventDefault()
+                    if (!courseActionSubmitting) setCourseActionConfirmation(null)
+                  }}
+                >
+                  <h2 id="course-action-dialog-title">
+                    {courseActionConfirmation === 'restart' ? '¿Volver a cursar?' : '¿Eliminar registro?'}
+                  </h2>
+                  <p id="course-action-dialog-description">
                     {courseActionConfirmation === 'restart'
                       ? 'Al volver a cursar se borrarán el avance de las lecciones y los resultados de actividades y examen. Seguirás inscrito en el curso.'
                       : 'Se eliminará tu inscripción, el avance de las lecciones y los resultados de actividades y examen. Para volver a acceder tendrás que inscribirte de nuevo.'}
                   </p>
-                  {courseActionError && <p className="student-form-error">{courseActionError}</p>}
-                  <div className="student-course-action-confirmation-buttons">
+                  <div className="student-course-action-dialog-buttons">
                     <button
                       type="button"
                       className="student-button"
@@ -609,16 +651,13 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                     <button
                       type="button"
                       className="student-button-secondary"
-                      onClick={() => {
-                        setCourseActionConfirmation(null)
-                        setCourseActionError(null)
-                      }}
+                      onClick={() => setCourseActionConfirmation(null)}
                       disabled={courseActionSubmitting}
                     >
                       Cancelar
                     </button>
                   </div>
-                </div>
+                </dialog>
               )}
             </div>
           </div>
@@ -675,15 +714,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                   <>
                     <div className="student-lesson-number">0{index + 1}</div>
                     <div className="student-lesson-copy">
-                      <div className="student-lesson-title-row">
-                        <strong>{lesson.title ?? `Lección ${index + 1}`}</strong>
-                        {isCompletedLesson && (
-                          <span className="student-lesson-status">✓ Completada</span>
-                        )}
-                        {currentIsEnrolled && !isCompletedLesson && (
-                          <span className="student-lesson-status is-pending">Pendiente</span>
-                        )}
-                      </div>
+                      <strong>{lesson.title ?? `Lección ${index + 1}`}</strong>
                       <span>{lesson.objective ?? lesson.description ?? 'Objetivo no disponible.'}</span>
                       {!currentIsEnrolled && (
                         <span className="student-lesson-status is-locked">
@@ -691,10 +722,19 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                         </span>
                       )}
                     </div>
-                    {tag && (
-                      <span className={`student-lesson-tag is-${tag}`}>
-                        {tag === 'sugerida' ? 'Empieza aquí' : 'Repaso opcional'}
-                      </span>
+                    {(currentIsEnrolled || tag) && (
+                      <div className="student-lesson-item-badges">
+                        {currentIsEnrolled && (
+                          <span className={`student-lesson-status${isCompletedLesson ? '' : ' is-pending'}`}>
+                            {isCompletedLesson ? '✓ Completada' : 'Pendiente'}
+                          </span>
+                        )}
+                        {tag && (
+                          <span className={`student-lesson-tag is-${tag}`}>
+                            {tag === 'sugerida' ? 'Empieza aquí' : 'Repaso opcional'}
+                          </span>
+                        )}
+                      </div>
                     )}
                   </>
                 )
@@ -741,15 +781,17 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                     <div className="student-lesson-copy">
                       <strong>{activity.title ?? `Actividad ${index + 1}`}</strong>
                       <span>{activity.description ?? 'Actividad publicada en Supabase.'}</span>
-                      {isCompletedActivity && (
-                        <span className="student-lesson-status">✓ Completada</span>
-                      )}
                       {!currentIsEnrolled && (
                         <span className="student-lesson-status is-locked">
                           {currentEnrollmentLoading ? 'Verificando inscripción…' : 'Inscríbete para acceder'}
                         </span>
                       )}
                     </div>
+                    {isCompletedActivity && (
+                      <div className="student-lesson-item-badges">
+                        <span className="student-lesson-status">✓ Completada</span>
+                      </div>
+                    )}
                   </>
                 )
 
@@ -792,6 +834,14 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                   <strong>{finalExam.title ?? 'Examen final del curso'}</strong>
                   <span>{finalExam.description ?? 'Accede al examen final de este curso.'}</span>
                 </div>
+                {finalExamScore !== null && (
+                  <div className="student-lesson-item-badges">
+                    <span className="student-lesson-status">✓ Completado</span>
+                    <span className="student-lesson-status is-score">
+                      Puntaje: {finalExamScore.toLocaleString('es-MX', { maximumFractionDigits: 2 })}%
+                    </span>
+                  </div>
+                )}
               </Link>
             ) : (
               <div className="student-lesson-item is-locked" aria-disabled="true">
@@ -807,6 +857,8 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
             )
           )}
         </section>
+
+        <Toast toast={visibleToast} onDismiss={dismissToast} />
 
         <div className="student-course-detail-footer">
           <span>{user.email ?? 'Estudiante'}</span>
