@@ -135,8 +135,8 @@ export default function DataSection({ user, preferences }: DataSectionProps) {
       </p>
 
       <div className="settings-data">
-        <DataGroup title="Tu cuenta" place="Guardado en Supabase" items={account} />
-        <DataGroup title="Tu aprendizaje" place="Guardado en Supabase" items={learning} />
+        <DataGroup title="Tu cuenta" place="Guardado en tu cuenta" items={account} />
+        <DataGroup title="Tu aprendizaje" place="Guardado en tu progreso" items={learning} />
         <DataGroup title="Tus preferencias" place="Guardado solo en este navegador" items={browser} />
       </div>
     </section>

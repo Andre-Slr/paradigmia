@@ -205,7 +205,7 @@ export default function CoursesPage({ user, onLogout }: CoursesPageProps) {
         {loading && (
           <div className="student-empty-state">
             <h2>Cargando cursos</h2>
-            <p>Estamos consultando el catálogo disponible en Supabase.</p>
+            <p>Estamos cargando el catálogo de cursos.</p>
           </div>
         )}
 

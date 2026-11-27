@@ -455,7 +455,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
       <AppShell onLogout={handleLogout}>
         <div className="student-empty-state student-detail-empty">
           <h2>Cargando actividad</h2>
-          <p>Estamos consultando la actividad y sus preguntas publicadas en Supabase.</p>
+          <p>Estamos cargando la actividad y sus preguntas.</p>
         </div>
       </AppShell>
     )
@@ -521,9 +521,9 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
           <div className="student-activity-copy">
             <p className="student-catalog-kicker">Actividad</p>
             <h1>{activity.title ?? 'Actividad sin título'}</h1>
-            <p className="student-activity-objective">
-              {activity.description ?? 'Esta actividad no incluye una descripción adicional.'}
-            </p>
+            {activity.description?.trim() && (
+              <p className="student-activity-objective">{activity.description}</p>
+            )}
             <div className="student-activity-instructions">
               <strong>Instrucciones:</strong>
               <span>{activity.instructions ?? 'Lee cada enunciado y responde según tu criterio.'}</span>

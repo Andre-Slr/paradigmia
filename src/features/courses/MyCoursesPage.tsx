@@ -145,7 +145,7 @@ export default function MyCoursesPage({ user, onLogout }: MyCoursesPageProps) {
         {loading ? (
           <div className="student-empty-state">
             <h2>Cargando tus cursos</h2>
-            <p>Estamos consultando tus inscripciones reales en Supabase.</p>
+            <p>Estamos cargando tus inscripciones y su progreso.</p>
           </div>
         ) : enrolledCourses.length === 0 ? (
           <div className="student-empty-state">

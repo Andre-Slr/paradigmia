@@ -313,7 +313,7 @@ export default function ExamPage({ user, onLogout }: ExamPageProps) {
       <AppShell onLogout={handleLogout}>
         <div className="student-empty-state student-detail-empty">
           <h2>Cargando examen</h2>
-          <p>Estamos consultando el examen final publicado en Supabase.</p>
+          <p>Estamos cargando el examen final.</p>
         </div>
       </AppShell>
     )
@@ -429,7 +429,7 @@ export default function ExamPage({ user, onLogout }: ExamPageProps) {
           <p>
             {bestExamScore !== null
               ? `Calificación final: ${bestExamScore}/100.`
-              : submitMessage ?? 'El examen ya quedó registrado en Supabase.'}
+              : submitMessage ?? 'El examen se registró correctamente.'}
           </p>
           <div className="student-lesson-actions">
             {latestAttemptId && (

@@ -513,7 +513,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
       <AppShell onLogout={handleLogout}>
         <div className="student-empty-state student-detail-empty">
           <h2>Cargando curso</h2>
-          <p>Estamos consultando la información publicada del curso en Supabase.</p>
+          <p>Estamos cargando la información del curso.</p>
         </div>
       </AppShell>
     )
@@ -826,12 +826,13 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                 const activityIdentifier = activity.slug ?? activity.id
                 const isCompletedActivity = currentIsEnrolled && completedActivityIds.includes(activity.id)
                 const blockingStep = getBlockingPreviousStep(activity.id)
+                const activityDescription = activity.description?.trim()
                 const activityContent = (
                   <>
                     <div className="student-lesson-number">A{index + 1}</div>
                     <div className="student-lesson-copy">
                       <strong>{activity.title ?? `Actividad ${index + 1}`}</strong>
-                      <span>{activity.description ?? 'Actividad publicada en Supabase.'}</span>
+                      {activityDescription && <span>{activityDescription}</span>}
                       {!currentIsEnrolled && (
                         <span className="student-lesson-status is-locked">
                           {currentEnrollmentLoading ? 'Verificando inscripción…' : 'Inscríbete para acceder'}
