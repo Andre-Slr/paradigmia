@@ -452,7 +452,7 @@ export default function ExamPage({ user, onLogout }: ExamPageProps) {
             {latestAttemptId && (
               <button
                 type="button"
-                className="student-catalog-action student-catalog-link"
+                className="student-button-secondary"
                 onClick={() => {
                   setShowExamReview(true)
                   void loadAttemptReview(latestAttemptId)

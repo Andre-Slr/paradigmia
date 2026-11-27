@@ -333,6 +333,26 @@ export async function createCourseEnrollment(userId: string, courseId: string): 
   return data as CourseEnrollmentRecord
 }
 
+export async function resetCourseProgress(courseId: string): Promise<void> {
+  const { error } = await supabase.rpc('reset_course_progress', {
+    p_course_id: courseId,
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+export async function deleteCourseEnrollment(courseId: string): Promise<void> {
+  const { error } = await supabase.rpc('delete_course_enrollment', {
+    p_course_id: courseId,
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
 export async function getCompletedLessonIds(enrollmentId: string, courseId: string): Promise<string[]> {
   const { data, error } = await supabase
     .from('lesson_progress')
