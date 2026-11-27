@@ -71,14 +71,17 @@ function sameAnswer(answer: unknown, correct: string | string[]): boolean {
 /** Califica las preguntas de diagnóstico que el estudiante respondió. */
 export function scoreDiagnostic(answers: Answers): DiagnosticResult | null {
   const lenguaje = typeof answers.lenguaje === 'string' ? answers.lenguaje : null
+  if (!lenguaje) return null
+
   const answered = questions.filter(
     (question) =>
       question.section === 'diagnostico' &&
       question.correct !== undefined &&
+      question.showIf?.(answers) === true &&
       question.id in answers,
   )
 
-  if (!lenguaje || answered.length === 0) return null
+  if (answered.length === 0) return null
 
   const aciertos = answered.filter((question) =>
     sameAnswer(answers[question.id], question.correct!),

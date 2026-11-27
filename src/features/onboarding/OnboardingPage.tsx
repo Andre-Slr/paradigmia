@@ -140,18 +140,18 @@ export default function OnboardingPage({ onSubmit }: OnboardingPageProps) {
               {error}
             </div>
           )}
-        </section>
 
-        <footer className="onboarding-footer">
-          <button
-            type="button"
-            className="onboarding-continue"
-            onClick={goNext}
-            disabled={!canAdvance || submitting}
-          >
-            {isLast ? (submitting ? 'Guardando...' : 'Finalizar') : 'Continuar'}
-          </button>
-        </footer>
+          <footer className="onboarding-footer">
+            <button
+              type="button"
+              className="onboarding-continue"
+              onClick={goNext}
+              disabled={!canAdvance || submitting}
+            >
+              {isLast ? (submitting ? 'Guardando...' : 'Finalizar') : 'Continuar'}
+            </button>
+          </footer>
+        </section>
       </div>
     </main>
   )
