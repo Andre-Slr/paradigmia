@@ -1087,6 +1087,13 @@
   max-width: 100%;
 }
 
+.student-course-enrollment-primary {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
+}
+
 .student-course-action-dialog-buttons {
   display: flex;
   flex-wrap: wrap;

@@ -579,13 +579,16 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
                   ) : (
                     <>
                       {continueLearningTarget ? (
-                        <Link to={continueLearningTarget} className="student-catalog-action student-catalog-link">
+                        <Link
+                          to={continueLearningTarget}
+                          className="student-catalog-action student-catalog-link student-course-enrollment-primary"
+                        >
                           Continuar aprendizaje
                         </Link>
                       ) : (
                         <button
                           type="button"
-                          className="student-catalog-action student-catalog-link"
+                          className="student-catalog-action student-catalog-link student-course-enrollment-primary"
                           disabled
                         >
                           {continueLearningLoading ? 'Calculando siguiente paso...' : 'No hay pasos pendientes'}
@@ -604,7 +607,7 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
               ) : (
                 <button
                   type="button"
-                  className="student-catalog-action student-catalog-link"
+                  className="student-catalog-action student-catalog-link student-course-enrollment-primary"
                   onClick={() => void handleEnrollment()}
                   disabled={enrollmentSubmitting || currentEnrollmentLoading}
                 >
