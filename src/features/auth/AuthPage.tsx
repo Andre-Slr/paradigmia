@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom'
 import logo from '@/assets/branding/logo-paradigmia.png'
-import mascotaSerpiente from '@/assets/branding/mascota-serpiente.png'
 import hojasSuperiorIzquierda from '@/assets/decor/hojas-superior-izquierda.png'
 import hojasSuperiorDerecha from '@/assets/decor/hojas-superior-derecha.png'
 import hojasInferiorIzquierda from '@/assets/decor/hojas-inferior-izquierda.png'
