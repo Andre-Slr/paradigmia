@@ -1,4 +1,8 @@
 import { useMemo, useState } from 'react'
+import hojasInferiorIzquierda from '@/assets/decor/hojas-inferior-izquierda.png'
+import hojasInferiorDerecha from '@/assets/decor/hojas-inferior-derecha.png'
+import hojasSuperiorIzquierda from '@/assets/decor/hojas-superior-izquierda.png'
+import hojasSuperiorDerecha from '@/assets/decor/hojas-superior-derecha.png'
 import QuestionField from './QuestionField'
 import { questions } from './questions'
 import type { AnswerValue, Answers, Question } from './types'
@@ -91,6 +95,19 @@ export default function OnboardingPage({ onSubmit }: OnboardingPageProps) {
 
   return (
     <main className="onboarding">
+      <div className="onboarding-decor onboarding-decor-top-left" aria-hidden="true">
+        <img src={hojasSuperiorIzquierda} alt="" />
+      </div>
+      <div className="onboarding-decor onboarding-decor-top-right" aria-hidden="true">
+        <img src={hojasSuperiorDerecha} alt="" />
+      </div>
+      <div className="onboarding-decor onboarding-decor-bottom-left" aria-hidden="true">
+        <img src={hojasInferiorIzquierda} alt="" />
+      </div>
+      <div className="onboarding-decor onboarding-decor-bottom-right" aria-hidden="true">
+        <img src={hojasInferiorDerecha} alt="" />
+      </div>
+
       <div className="onboarding-shell">
         <header className="onboarding-top">
           <button
@@ -140,18 +157,18 @@ export default function OnboardingPage({ onSubmit }: OnboardingPageProps) {
               {error}
             </div>
           )}
-        </section>
 
-        <footer className="onboarding-footer">
-          <button
-            type="button"
-            className="onboarding-continue"
-            onClick={goNext}
-            disabled={!canAdvance || submitting}
-          >
-            {isLast ? (submitting ? 'Guardando...' : 'Finalizar') : 'Continuar'}
-          </button>
-        </footer>
+          <footer className="onboarding-footer">
+            <button
+              type="button"
+              className="onboarding-continue"
+              onClick={goNext}
+              disabled={!canAdvance || submitting}
+            >
+              {isLast ? (submitting ? 'Guardando...' : 'Finalizar') : 'Continuar'}
+            </button>
+          </footer>
+        </section>
       </div>
     </main>
   )

@@ -270,21 +270,69 @@ h1, h2, h3, h4, h5, h6, nav {
 }
 
 .onboarding {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   display: flex;
   justify-content: center;
   padding: 24px;
-  background: var(--bs-body-bg);
+  overflow: hidden;
+  background: linear-gradient(180deg, #f6f1ea 0%, #f2efe9 100%);
+}
+
+.onboarding-decor {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  filter: saturate(0.8);
+}
+
+.onboarding-decor img {
+  display: block;
+  width: 220px;
+  height: auto;
+  object-fit: contain;
+}
+
+.onboarding-decor-top-left {
+  top: 8px;
+  left: 8px;
+  transform: rotate(-8deg);
+}
+
+.onboarding-decor-top-right {
+  top: 8px;
+  right: 8px;
+  transform: scaleX(-1) rotate(5deg);
+}
+
+.onboarding-decor-bottom-left {
+  bottom: 8px;
+  left: 8px;
+  transform: rotate(6deg);
+}
+
+.onboarding-decor-bottom-right {
+  right: 8px;
+  bottom: 8px;
+  transform: scaleX(-1) rotate(-4deg);
 }
 
 .onboarding-shell {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 640px;
   min-height: calc(100vh - 48px);
   display: flex;
   flex-direction: column;
   gap: 24px;
-  padding-top: 8px;
+  padding: 28px;
+  border: 1px solid rgba(25, 53, 12, 0.08);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 18px 40px rgba(25, 53, 12, 0.08);
 }
 
 .onboarding-top {
@@ -357,7 +405,8 @@ h1, h2, h3, h4, h5, h6, nav {
   gap: 12px;
   padding: 16px;
   border-radius: 16px;
-  background: rgba(111, 169, 187, 0.18);
+  border: 1px solid rgba(25, 53, 12, 0.08);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .onboarding-option {
@@ -368,6 +417,7 @@ h1, h2, h3, h4, h5, h6, nav {
   border: 2px solid transparent;
   border-radius: 12px;
   background: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(25, 53, 12, 0.04);
   cursor: pointer;
 }
 
@@ -418,6 +468,7 @@ h1, h2, h3, h4, h5, h6, nav {
   border: 2px solid transparent;
   border-radius: 14px;
   background: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(25, 53, 12, 0.04);
   cursor: pointer;
   font-size: 14px;
   color: var(--bs-body-color);
@@ -439,7 +490,8 @@ h1, h2, h3, h4, h5, h6, nav {
   gap: 12px;
   padding: 16px;
   border-radius: 16px;
-  background: rgba(111, 169, 187, 0.18);
+  border: 1px solid rgba(25, 53, 12, 0.08);
+  background: rgba(255, 255, 255, 0.72);
 }
 
 .onboarding-card-option {
@@ -448,6 +500,7 @@ h1, h2, h3, h4, h5, h6, nav {
   border: 2px solid transparent;
   border-radius: 14px;
   background: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(25, 53, 12, 0.04);
   cursor: pointer;
   font-size: 15px;
   line-height: 1.5;
@@ -467,6 +520,7 @@ h1, h2, h3, h4, h5, h6, nav {
   padding: 14px 16px;
   border-radius: 12px;
   background: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(25, 53, 12, 0.04);
   font-size: 14px;
   overflow-x: auto;
 }
@@ -474,6 +528,7 @@ h1, h2, h3, h4, h5, h6, nav {
 .onboarding-footer {
   display: flex;
   justify-content: flex-end;
+  margin-top: 24px;
 }
 
 .onboarding-continue {
@@ -497,6 +552,25 @@ h1, h2, h3, h4, h5, h6, nav {
 }
 
 @media (max-width: 480px) {
+  .onboarding {
+    padding: 16px;
+  }
+
+  .onboarding-shell {
+    min-height: calc(100vh - 32px);
+    padding: 22px 18px;
+    border-radius: 22px;
+  }
+
+  .onboarding-decor img {
+    width: 150px;
+  }
+
+  .onboarding-decor-bottom-left,
+  .onboarding-decor-bottom-right {
+    display: none;
+  }
+
   .onboarding-grid {
     grid-template-columns: repeat(2, 1fr);
   }
