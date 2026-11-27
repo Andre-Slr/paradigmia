@@ -459,11 +459,16 @@ export default function CourseDetailPage({ user, onLogout }: CourseDetailPagePro
             >
               <strong>{sessionPlan.review ? 'Repaso antes de continuar' : 'Tu plan para hoy'}</strong>
               {sessionPlan.message && <p>{sessionPlan.message}</p>}
-              <ol>
-                {sessionPlan.steps.map((step) => (
+              <ol className="student-session-steps">
+                {sessionPlan.steps.map((step, index) => (
                   <li key={step.id}>
-                    <Link to={step.url}>{step.title}</Link>
-                    <span>{step.type === 'lesson' ? 'Lección' : step.type === 'activity' ? 'Actividad' : 'Examen'}</span>
+                    <Link to={step.url} className="student-session-step">
+                      <span className="student-session-step-number">{index + 1}</span>
+                      <span className="student-session-step-title">{step.title}</span>
+                      <span className="student-session-step-type">
+                        {step.type === 'lesson' ? 'Lección' : step.type === 'activity' ? 'Actividad' : 'Examen'}
+                      </span>
+                    </Link>
                   </li>
                 ))}
               </ol>

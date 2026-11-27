@@ -539,9 +539,7 @@ export function planStudySession(
     review: null,
     message:
       sessionRule && sessionTimeBudget
-        ? `Como estudias ${budgetText[sessionTimeBudget]} por sesión, hoy te proponemos ${
-            steps.length === 1 ? 'este paso' : `estos ${steps.length} pasos`
-          }.`
+        ? `Como estudias ${budgetText[sessionTimeBudget]} por sesión, esto es lo que te proponemos para hoy:`
         : null,
   }
 }
