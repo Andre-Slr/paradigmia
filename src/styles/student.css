@@ -1535,7 +1535,8 @@
 
 .student-quiz-options {
   display: flex;
-  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: stretch;
   gap: 14px;
 }
 
@@ -1543,7 +1544,10 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  width: 100%;
+  flex: 1 1 max-content;
+  width: auto;
+  min-width: min(100%, 8rem);
+  max-width: calc(50% - 7px);
   min-height: 56px;
   padding: 0.9rem 1.1rem;
   border: 2px solid rgba(25, 53, 12, 0.14);
@@ -1557,6 +1561,16 @@
   cursor: pointer;
   box-shadow: 0 3px 8px rgba(25, 53, 12, 0.08);
   transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.student-option:only-child {
+  max-width: 100%;
+}
+
+.student-option span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: left;
 }
 
 .student-option:hover {
