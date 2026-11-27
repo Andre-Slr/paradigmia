@@ -146,22 +146,66 @@
   margin: 4px 0 8px;
 }
 
-.student-session-plan ol {
-  margin: 0;
-  padding-left: 1.3rem;
+/* Los pasos del plan se ven como botones, no como links azules. */
+.student-session-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
 }
 
-.student-session-plan li + li {
-  margin-top: 4px;
+.student-session-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border: 1px solid rgba(25, 53, 12, 0.18);
+  border-radius: 999px;
+  background: var(--student-card);
+  color: var(--student-dark-green);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(25, 53, 12, 0.08);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 
-.student-session-plan li span {
-  margin-left: 8px;
-  font-size: 0.78rem;
-  color: var(--student-teal);
+.student-session-step:hover,
+.student-session-step:focus-visible {
+  background: var(--student-dark-green);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.student-session-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--student-olive);
+  color: #fff;
+  font-size: 0.8rem;
+}
+
+.student-session-step-type {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.75;
 }
 
 /* R8 y R13 · Avisos dentro de actividades y exámenes. */
+.student-rule-warning p {
+  margin: 0 0 10px;
+}
+
+.student-rule-warning p:last-child {
+  margin-bottom: 0;
+}
+
 .student-rule-warning {
   margin: 12px 0;
   padding: 12px 16px;

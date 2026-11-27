@@ -4,6 +4,12 @@ import { getUserEnrollments } from '@/features/courses/courseService'
 import { useLearnerProfile } from '@/features/adaptation/useLearnerProfile'
 import type { Preferences } from '../preferences'
 
+const NOMBRE_NIVEL: Record<string, string> = {
+  basico: 'Básico',
+  intermedio: 'Intermedio',
+  avanzado: 'Avanzado',
+}
+
 type Origin = 'explicit' | 'implicit'
 
 interface DataItem {
@@ -13,7 +19,7 @@ interface DataItem {
 }
 
 const ORIGIN_TEXT: Record<Origin, string> = {
-  explicit: 'Lo diste tú',
+  explicit: 'Dato del usuario',
   implicit: 'Lo calcula Paradigmia',
 }
 
@@ -80,13 +86,13 @@ export default function DataSection({ user, preferences }: DataSectionProps) {
 
   const learning: DataItem[] = [
     {
-      label: 'Respuestas del cuestionario inicial',
+      label: 'Cuestionario inicial',
       value: profile.nivel ? 'Guardadas' : 'Sin responder',
       origin: 'explicit',
     },
     {
       label: 'Nivel',
-      value: profile.nivel ? profile.nivel.charAt(0).toUpperCase() + profile.nivel.slice(1) : 'Sin definir',
+      value: profile.nivel ? NOMBRE_NIVEL[profile.nivel] : 'Sin definir',
       origin: 'implicit',
     },
     {
@@ -121,7 +127,7 @@ export default function DataSection({ user, preferences }: DataSectionProps) {
 
       <p className="settings-legend">
         <span>
-          <span className="settings-data-tag is-explicit">Lo diste tú</span> datos explícitos
+          <span className="settings-data-tag is-explicit">Dato del usuario</span> datos explícitos
         </span>
         <span>
           <span className="settings-data-tag is-implicit">Lo calcula Paradigmia</span> datos implícitos

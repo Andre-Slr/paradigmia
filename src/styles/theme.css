@@ -17,9 +17,28 @@
   --bs-info-rgb: 111, 169, 187;
   --bs-light-rgb: 213, 211, 204;
 
+  /* Links con los colores del tema, nunca el azul de Bootstrap. */
+  --bs-link-color: #406768;
+  --bs-link-color-rgb: 64, 103, 104;
+  --bs-link-hover-color: #19350C;
+  --bs-link-hover-color-rgb: 25, 53, 12;
+
   --bs-body-bg: #D5D3CC;
   --bs-body-color: #19350C;
   --bs-font-sans-serif: 'Inter', sans-serif;
+}
+
+/* No mostrar el cursor de escritura sobre textos que no se pueden editar;
+   solo aparece en campos de texto. */
+body {
+  caret-color: transparent;
+}
+
+input,
+textarea,
+select,
+[contenteditable='true'] {
+  caret-color: auto;
 }
 
 h1, h2, h3, h4, h5, h6, nav {

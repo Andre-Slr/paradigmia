@@ -675,13 +675,15 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
 
         {reviewNeeded && (
           <div className="student-rule-warning" role="alert">
-            Llevas {reviewNeeded.failedAttempts} intentos sin aprobar esta actividad. Te recomendamos repasar{' '}
-            {reviewNeeded.lesson ? (
-              <Link to={reviewNeeded.lesson.url}>{reviewNeeded.lesson.title}</Link>
-            ) : (
-              'la lección'
-            )}{' '}
-            antes de volver a intentarlo.
+            <p>
+              Llevas {reviewNeeded.failedAttempts} intentos sin aprobar esta actividad. Te recomendamos repasar{' '}
+              {reviewNeeded.lesson ? `"${reviewNeeded.lesson.title}"` : 'la lección'} antes de volver a intentarlo.
+            </p>
+            {reviewNeeded.lesson && (
+              <Link to={reviewNeeded.lesson.url} className="student-ghost-button">
+                Repasar la lección
+              </Link>
+            )}
           </div>
         )}
 
