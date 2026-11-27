@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
 import AppShell from '@/components/layout/AppShell'
+import Toast, { type StudentToastMessage } from '@/components/Toast'
 import {
   buildCourseLearningSequence,
   completeLesson,
@@ -55,6 +56,13 @@ function normalizeContentBlocks(content: PublishedLessonRecord['content']): Arra
 
 export default function LessonPage({ user, onLogout }: LessonPageProps) {
   const { courseId, lessonId } = useParams()
+  const location = useLocation()
+  const navigate = useNavigate()
+  const toast = (location.state as { courseToast?: StudentToastMessage } | null)?.courseToast ?? null
+  const dismissToast = useCallback(
+    () => navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null }),
+    [location.hash, location.pathname, location.search, navigate],
+  )
   const [course, setCourse] = useState<PublishedCourseRecord | null>(null)
   const [lesson, setLesson] = useState<PublishedLessonRecord | null>(null)
   const [lessonSequence, setLessonSequence] = useState<ReturnType<typeof buildCourseLearningSequence>>([])
@@ -330,6 +338,7 @@ export default function LessonPage({ user, onLogout }: LessonPageProps) {
 
   return (
     <AppShell onLogout={handleLogout}>
+      <Toast toast={toast} onDismiss={dismissToast} />
       <div className="student-lesson-page">
         <div className="student-lesson-topbar">
           <Link to={`/courses/${course.slug}`} className="student-back-link">

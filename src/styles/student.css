@@ -300,15 +300,19 @@
 }
 
 .student-button {
+  border: 1px solid transparent;
   background: var(--student-dark-green);
   color: #ffffff;
   box-shadow: 0 12px 20px rgba(25, 53, 12, 0.18);
+  cursor: pointer;
 }
 
 .student-button-secondary {
   background: rgba(255, 255, 255, 0.7);
   color: var(--student-dark-green);
   border: 1px solid rgba(25, 53, 12, 0.1);
+  box-shadow: none;
+  cursor: pointer;
 }
 
 .student-button:hover,
@@ -805,7 +809,8 @@
 }
 
 .student-catalog-action {
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
   border: none;
   border-radius: 14px;
   padding: 0.82rem 1rem;
@@ -825,6 +830,11 @@
   justify-content: center;
   cursor: pointer;
   text-decoration: none;
+}
+
+.student-catalog-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .student-back-link {
@@ -1020,6 +1030,115 @@
   gap: 18px;
 }
 
+.student-course-enrollment-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.student-course-enrollment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.student-course-complete-message {
+  margin: 0;
+  color: var(--student-dark-green);
+  font-weight: 800;
+}
+
+.student-course-action-dialog {
+  position: fixed;
+  inset: 0;
+  width: min(460px, calc(100% - 32px));
+  max-width: 100%;
+  margin: auto;
+  padding: 24px;
+  border: 1px solid rgba(25, 53, 12, 0.14);
+  border-radius: 20px;
+  background: var(--student-card);
+  box-shadow: var(--student-shadow);
+  color: var(--student-dark-green);
+}
+
+.student-course-action-dialog::backdrop {
+  background: rgba(25, 53, 12, 0.5);
+}
+
+.student-course-action-dialog h2 {
+  margin: 0 0 12px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.student-course-action-dialog > p {
+  margin: 0 0 20px;
+  line-height: 1.6;
+}
+
+.student-course-enrollment-actions > .student-catalog-action,
+.student-course-enrollment-actions > .student-button,
+.student-course-enrollment-actions > .student-button-secondary,
+.student-course-action-dialog-buttons > .student-button,
+.student-course-action-dialog-buttons > .student-button-secondary {
+  width: auto;
+  max-width: 100%;
+}
+
+.student-course-enrollment-primary {
+  flex: 0 0 auto;
+  align-self: flex-start;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.student-course-action-dialog-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.student-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: min(440px, calc(100vw - 40px));
+  padding: 14px 16px;
+  border: 1px solid rgba(25, 53, 12, 0.12);
+  border-radius: 14px;
+  background: var(--student-card);
+  box-shadow: var(--student-shadow);
+  color: var(--student-dark-green);
+  font-weight: 700;
+}
+
+.student-toast.is-success {
+  border-left: 5px solid var(--student-olive);
+}
+
+.student-toast.is-error {
+  border-left: 5px solid #a33535;
+}
+
+.student-toast button {
+  flex-shrink: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
 .student-course-detail-body p {
   margin: 0;
   color: rgba(25, 53, 12, 0.8);
@@ -1059,6 +1178,11 @@
   gap: 12px;
 }
 
+.student-lesson-item.is-locked {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
 .student-lesson-item {
   display: flex;
   align-items: center;
@@ -1087,7 +1211,55 @@
 .student-lesson-copy {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 4px;
+  min-width: 0;
+}
+
+.student-lesson-item-badges {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.student-lesson-status {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(104, 125, 49, 0.13);
+  color: var(--student-dark-green);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.student-lesson-status.is-locked {
+  color: rgba(25, 53, 12, 0.76);
+}
+
+.student-lesson-status.is-pending {
+  background: rgba(64, 103, 104, 0.1);
+  color: var(--student-teal);
+}
+
+.student-lesson-status.is-score {
+  background: rgba(64, 103, 104, 0.1);
+  color: var(--student-teal);
+}
+
+.student-lesson-item-badges .student-lesson-status,
+.student-lesson-item-badges .student-lesson-tag {
+  align-self: center;
+  white-space: nowrap;
+}
+
+.student-lesson-item-badges .student-lesson-tag {
+  margin-left: 0;
 }
 
 .student-lesson-copy strong {
@@ -1208,6 +1380,21 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.student-lesson-actions > .student-catalog-action,
+.student-lesson-actions > .student-button-secondary,
+.student-course-enrollment-block > .student-catalog-action,
+.student-activity-footer > .student-button,
+.student-activity-footer > .student-button-secondary,
+.student-activity-footer > .student-catalog-action {
+  width: auto;
+  max-width: 100%;
+}
+
+.student-lesson-actions > .student-catalog-action,
+.student-lesson-actions > .student-button-secondary {
+  align-self: flex-start;
 }
 
 .student-lesson-save-message {
@@ -1354,47 +1541,87 @@
 }
 
 .student-quiz-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 14px;
 }
 
 .student-option {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  width: 100%;
-  min-height: 52px;
-  padding: 0.8rem 1rem;
-  border: 1px solid rgba(25, 53, 12, 0.12);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.9);
+  flex: 1 1 max-content;
+  width: auto;
+  min-width: min(100%, 8rem);
+  max-width: calc(50% - 7px);
+  min-height: 56px;
+  padding: 0.9rem 1.1rem;
+  border: 2px solid rgba(25, 53, 12, 0.14);
+  border-radius: 12px;
+  background: #ffffff;
   color: var(--student-dark-green);
   font-family: 'Inter', sans-serif;
   font-size: 0.96rem;
+  font-weight: 600;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+  box-shadow: 0 3px 8px rgba(25, 53, 12, 0.08);
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.student-option:only-child {
+  max-width: 100%;
+}
+
+.student-option span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  text-align: left;
 }
 
 .student-option:hover {
-  border-color: rgba(25, 53, 12, 0.2);
-  transform: translateY(-1px);
+  border-color: rgba(104, 125, 49, 0.7);
+  box-shadow: 0 6px 12px rgba(25, 53, 12, 0.12);
+  transform: translateY(-2px);
 }
 
 .student-option.is-selected {
-  border-color: rgba(104, 125, 49, 0.6);
-  background: rgba(104, 125, 49, 0.08);
+  border-color: var(--student-dark-green);
+  background: rgba(104, 125, 49, 0.15);
+  box-shadow: 0 0 0 2px rgba(104, 125, 49, 0.12);
+  font-weight: 800;
 }
 
 .student-option.is-correct {
-  border-color: rgba(104, 125, 49, 0.75);
-  background: rgba(104, 125, 49, 0.12);
+  border-color: #2e7d32;
+  background: #eaf7ec;
+  color: #19350c;
 }
 
 .student-option.is-incorrect {
   border-color: rgba(64, 103, 104, 0.4);
   background: rgba(64, 103, 104, 0.08);
+}
+
+.student-option.is-wrong {
+  border-color: #b42318;
+  background: #fbeae8;
+  color: #8b1e1e;
+}
+
+.student-option:focus-visible {
+  outline: 3px solid rgba(64, 103, 104, 0.7);
+  outline-offset: 2px;
+}
+
+.student-option:disabled {
+  cursor: default;
+}
+
+.student-option:disabled:hover {
+  box-shadow: 0 3px 8px rgba(25, 53, 12, 0.08);
+  transform: none;
 }
 
 .student-question-feedback {
@@ -1416,6 +1643,11 @@
 .student-question-feedback small {
   color: rgba(25, 53, 12, 0.72);
   line-height: 1.6;
+}
+
+.student-quiz-card .student-button-secondary {
+  width: auto;
+  max-width: 100%;
 }
 
 .student-activity-footer {
@@ -1545,6 +1777,15 @@
 
   .student-progress-item {
     flex-wrap: wrap;
+  }
+
+  .student-lesson-item {
+    flex-wrap: wrap;
+  }
+
+  .student-lesson-item-badges {
+    flex: 0 1 calc(100% - 60px);
+    margin-left: 60px;
   }
 
   .student-content-status {

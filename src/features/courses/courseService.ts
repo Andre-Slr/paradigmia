@@ -117,6 +117,17 @@ export interface PublishedQuestionOptionRecord {
   position: number | null
 }
 
+export function shuffleQuestionOptions<T>(options: T[]): T[] {
+  const shuffled = [...options]
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    ;[shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]]
+  }
+
+  return shuffled
+}
+
 export interface CourseEnrollmentRecord {
   id: string
   user_id: string
@@ -320,6 +331,26 @@ export async function createCourseEnrollment(userId: string, courseId: string): 
   }
 
   return data as CourseEnrollmentRecord
+}
+
+export async function resetCourseProgress(courseId: string): Promise<void> {
+  const { error } = await supabase.rpc('reset_course_progress', {
+    p_course_id: courseId,
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}
+
+export async function deleteCourseEnrollment(courseId: string): Promise<void> {
+  const { error } = await supabase.rpc('delete_course_enrollment', {
+    p_course_id: courseId,
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
 }
 
 export async function getCompletedLessonIds(enrollmentId: string, courseId: string): Promise<string[]> {

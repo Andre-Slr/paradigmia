@@ -16,6 +16,7 @@ import {
   getPublishedCourseBySlug,
   getPublishedCourseLessons,
   getQuestionOptions,
+  shuffleQuestionOptions,
   submitAssessmentAnswers,
   type AttemptReviewEntry,
   type PublishedAssessmentRecord,
@@ -61,6 +62,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
   const [isEnrolled, setIsEnrolled] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isActivityApproved, setIsActivityApproved] = useState(false)
+  const [hasFailedAttempt, setHasFailedAttempt] = useState(false)
   const [passedActivityIds, setPassedActivityIds] = useState<string[]>([])
   const [examPassed, setExamPassed] = useState(false)
   const [previousLessonCompleted, setPreviousLessonCompleted] = useState(true)
@@ -90,6 +92,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
         setLoading(true)
         setError(null)
         setSubmitMessage(null)
+        setHasFailedAttempt(false)
 
         const courseData = await getPublishedCourseBySlug(currentCourseSlug)
         if (!active) return
@@ -134,7 +137,9 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
               explanation: question.explanation ?? null,
               position: question.position ?? null,
               points: question.points ?? null,
-              options: options.sort((left, right) => (left.position ?? 0) - (right.position ?? 0)),
+              options: shuffleQuestionOptions(
+                [...options].sort((left, right) => (left.position ?? 0) - (right.position ?? 0))
+              ),
             } satisfies ActivityQuestionViewModel
           })
         )
@@ -166,6 +171,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
         setExamPassed(Boolean(academicProgress?.examPassed))
         setLatestApprovedScore(bestValidAttempt?.score ?? null)
         setIsActivityApproved(Boolean(bestValidAttempt))
+        setHasFailedAttempt(relevantAttempts.length > 0 && !bestValidAttempt)
         setPersistedAnswers(normalizedPersistedAnswers)
         setAnswers(normalizedPersistedAnswers)
       } catch (loadError) {
@@ -233,11 +239,15 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
     return onLogout()
   }
 
-  const allAnswered = questions.length > 0 && Object.keys(answers).length === questions.length
+  const allAnswered = questions.length > 0 && questions.every(
+    (question) => Boolean(answers[question.id] ?? persistedAnswers[question.id]),
+  )
   const showRetryButton = !isActivityApproved && !isSubmitting && (
+    hasFailedAttempt ||
     Object.keys(attemptReview).length > 0 ||
     Boolean(submitMessage && (submitMessage.includes('Calificación:') || submitMessage.includes('Aún no alcanzas')))
   )
+  const areOptionsLocked = isActivityApproved || hasFailedAttempt || isSubmitting
   // R5: con diagnóstico alto, la lección 1 y su actividad no bloquean lo que sigue.
   const studentPath = pathForStudent(sequence, course, learnerProfile, activity?.id)
   const currentSequenceIndex = activity ? studentPath.findIndex((item) => item.type === 'activity' && item.id === activity.id) : -1
@@ -310,10 +320,12 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
   const isBlockedByPrerequisite = Boolean(previousStep) && !previousStepCompleted
 
   const handleOptionSelect = (questionId: string, optionId: string): void => {
+    if (areOptionsLocked) return
     setAnswers((current) => ({ ...current, [questionId]: optionId }))
   }
 
   const handleRetryActivity = (): void => {
+    setHasFailedAttempt(false)
     setAnswers({})
     setPersistedAnswers({})
     setAttemptReview({})
@@ -344,7 +356,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
       return
     }
 
-    if (isSubmitting) {
+    if (isSubmitting || hasFailedAttempt) {
       return
     }
 
@@ -388,6 +400,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
       setLatestApprovedScore(bestApprovedAttempt?.score ?? null)
       setIsActivityApproved(passedByScore)
       if (passedByScore) {
+        setHasFailedAttempt(false)
         const approvedAnswers = Object.fromEntries(
           payload.map((entry) => [entry.question_id, entry.option_id])
         )
@@ -395,10 +408,12 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
         setAnswers(approvedAnswers)
         setSubmitMessage(`Actividad completada. Calificación: ${latestScore ?? 0}/100. Puedes continuar con la siguiente lección.`)
       } else if (typeof latestScore === 'number') {
+        setHasFailedAttempt(true)
         setPersistedAnswers({})
         setAnswers({})
         setSubmitMessage(`Calificación: ${latestScore}/100. Aún no alcanzas la nota mínima para completar esta actividad.`)
       } else {
+        setHasFailedAttempt(true)
         setPersistedAnswers({})
         setAnswers({})
         setSubmitMessage('La actividad se ha enviado correctamente. El resultado todavía no tiene una calificación registrada.')
@@ -590,9 +605,9 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
                           key={option.id}
                           type="button"
                           className={optionClasses.join(' ')}
-                          onClick={() => !isActivityApproved && handleOptionSelect(question.id, option.id)}
+                          onClick={() => handleOptionSelect(question.id, option.id)}
                           aria-pressed={isSelected}
-                          disabled={isActivityApproved}
+                          disabled={areOptionsLocked}
                           title={
                             isApprovedReview && reviewEntry && reviewEntry.correct_option_id === option.id
                               ? 'Respuesta correcta'
@@ -699,7 +714,7 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
               type="button"
               className="student-button"
               onClick={handleSubmit}
-              disabled={!allAnswered || isSubmitting}
+              disabled={!allAnswered || isSubmitting || hasFailedAttempt}
             >
               {isSubmitting ? 'Enviando...' : 'Enviar actividad'}
             </button>
@@ -718,24 +733,13 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
           </div>
         )}
 
-        {nextStep ? (
+        {nextStep && isActivityApproved ? (
           <div className="student-activity-footer">
             <Link
               to={nextStep.url}
               className="student-catalog-action student-catalog-link"
-              onClick={(event) => {
-                if (!isActivityApproved) {
-                  event.preventDefault()
-                }
-              }}
-              aria-disabled={!isActivityApproved}
-              style={{
-                pointerEvents: isActivityApproved ? 'auto' : 'none',
-                opacity: isActivityApproved ? 1 : 0.6,
-                textDecoration: 'none',
-              }}
             >
-              {isActivityApproved ? `Siguiente: ${nextStep.title}` : 'Primero debes aprobar la actividad'}
+              Siguiente: {nextStep.title}
             </Link>
           </div>
         ) : null}
