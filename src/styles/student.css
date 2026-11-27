@@ -300,15 +300,19 @@
 }
 
 .student-button {
+  border: 1px solid transparent;
   background: var(--student-dark-green);
   color: #ffffff;
   box-shadow: 0 12px 20px rgba(25, 53, 12, 0.18);
+  cursor: pointer;
 }
 
 .student-button-secondary {
   background: rgba(255, 255, 255, 0.7);
   color: var(--student-dark-green);
   border: 1px solid rgba(25, 53, 12, 0.1);
+  box-shadow: none;
+  cursor: pointer;
 }
 
 .student-button:hover,
@@ -1059,6 +1063,11 @@
   gap: 12px;
 }
 
+.student-lesson-item.is-locked {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
 .student-lesson-item {
   display: flex;
   align-items: center;
@@ -1087,7 +1096,23 @@
 .student-lesson-copy {
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 4px;
+  min-width: 0;
+}
+
+.student-lesson-status {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  margin-top: 0.35rem;
+  color: var(--student-dark-green);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.student-lesson-status.is-locked {
+  color: rgba(25, 53, 12, 0.76);
 }
 
 .student-lesson-copy strong {
@@ -1210,6 +1235,16 @@
   gap: 10px;
 }
 
+.student-lesson-actions > .student-catalog-action,
+.student-lesson-actions > .student-button-secondary,
+.student-course-enrollment-block > .student-catalog-action,
+.student-activity-footer > .student-button,
+.student-activity-footer > .student-button-secondary,
+.student-activity-footer > .student-catalog-action {
+  width: auto;
+  max-width: 100%;
+}
+
 .student-lesson-save-message {
   margin: 0;
   font-size: 0.88rem;
@@ -1302,11 +1337,11 @@
   display: flex;
   flex-direction: column;
   gap: 18px;
-  padding: 22px;
+  padding: 28px;
   border-radius: 22px;
   background: rgba(255, 255, 255, 0.86);
   border: 1px solid rgba(25, 53, 12, 0.08);
-  box-shadow: 0 12px 18px rgba(25, 53, 12, 0.04);
+  box-shadow: 0 18px 30px rgba(25, 53, 12, 0.08);
 }
 
 .student-quiz-question-head {
@@ -1416,6 +1451,11 @@
 .student-question-feedback small {
   color: rgba(25, 53, 12, 0.72);
   line-height: 1.6;
+}
+
+.student-quiz-card .student-button-secondary {
+  width: auto;
+  max-width: 100%;
 }
 
 .student-activity-footer {

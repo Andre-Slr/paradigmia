@@ -12,6 +12,7 @@ import {
   getPublishedCourseBySlug,
   getPublishedCourseLessons,
   getQuestionOptions,
+  shuffleQuestionOptions,
   submitAssessmentAnswers,
   type AttemptReviewEntry,
   type PublishedAssessmentRecord,
@@ -119,7 +120,9 @@ export default function ExamPage({ user, onLogout }: ExamPageProps) {
               prompt: question.prompt ?? 'Pregunta sin enunciado disponible.',
               explanation: question.explanation ?? null,
               position: question.position ?? null,
-              options: options.sort((left, right) => (left.position ?? 0) - (right.position ?? 0)),
+              options: shuffleQuestionOptions(
+                [...options].sort((left, right) => (left.position ?? 0) - (right.position ?? 0))
+              ),
             } satisfies ExamQuestionViewModel
           })
         )
@@ -462,7 +465,7 @@ export default function ExamPage({ user, onLogout }: ExamPageProps) {
             {!examPassed && !showExamReview && (
               <button
                 type="button"
-                className="student-catalog-action student-catalog-link"
+                className="student-button-secondary"
                 onClick={() => {
                   setAnswers({})
                   setSubmitMessage(null)
@@ -476,7 +479,7 @@ export default function ExamPage({ user, onLogout }: ExamPageProps) {
                 Reintentar
               </button>
             )}
-            <Link to="/my-courses" className="student-catalog-action student-catalog-link">
+            <Link to="/my-courses" className="student-back-link">
               Volver a Mis cursos
             </Link>
           </div>

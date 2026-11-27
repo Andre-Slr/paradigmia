@@ -16,6 +16,7 @@ import {
   getPublishedCourseBySlug,
   getPublishedCourseLessons,
   getQuestionOptions,
+  shuffleQuestionOptions,
   submitAssessmentAnswers,
   type AttemptReviewEntry,
   type PublishedAssessmentRecord,
@@ -134,7 +135,9 @@ export default function ActivityPage({ user, onLogout }: ActivityPageProps) {
               explanation: question.explanation ?? null,
               position: question.position ?? null,
               points: question.points ?? null,
-              options: options.sort((left, right) => (left.position ?? 0) - (right.position ?? 0)),
+              options: shuffleQuestionOptions(
+                [...options].sort((left, right) => (left.position ?? 0) - (right.position ?? 0))
+              ),
             } satisfies ActivityQuestionViewModel
           })
         )

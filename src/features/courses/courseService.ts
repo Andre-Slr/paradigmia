@@ -117,6 +117,17 @@ export interface PublishedQuestionOptionRecord {
   position: number | null
 }
 
+export function shuffleQuestionOptions<T>(options: T[]): T[] {
+  const shuffled = [...options]
+
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    ;[shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]]
+  }
+
+  return shuffled
+}
+
 export interface CourseEnrollmentRecord {
   id: string
   user_id: string
