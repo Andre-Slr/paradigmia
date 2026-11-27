@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import logo from '@/assets/branding/logo-paradigmia.png'
 import homeIcon from '@/assets/icons/inicio.png'
@@ -10,23 +11,43 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onLogout }: SidebarProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
   async function handleLogout() {
+    const confirmed = window.confirm('¿Estás seguro de que deseas salir?')
+    if (!confirmed) return
+
     if (onLogout) {
       await onLogout()
     }
   }
 
   return (
-    <nav className="student-sidebar" aria-label="Menú del estudiante">
+    <nav
+      className={`student-sidebar${isMobileMenuOpen ? ' is-mobile-open' : ''}`}
+      aria-label="Menú del estudiante"
+    >
       <div className="student-brand" aria-label="Paradigmia">
         <img src={logo} alt="Paradigmia" className="student-brand-logo" />
-        <div className="student-brand-copy">
-          <span className="student-brand-name">Paradigmia</span>
-          <span className="student-brand-subtitle">Student area</span>
-        </div>
+        <button
+          type="button"
+          className="student-menu-toggle"
+          aria-label={isMobileMenuOpen ? 'Contraer menú' : 'Expandir menú'}
+          aria-expanded={isMobileMenuOpen}
+          aria-controls="student-navigation-links"
+          onClick={() => setIsMobileMenuOpen((isOpen) => !isOpen)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
       </div>
 
-      <div className="student-nav-group">
+      <div
+        id="student-navigation-links"
+        className="student-nav-group"
+        onClick={() => setIsMobileMenuOpen(false)}
+      >
         <NavLink
           to="/dashboard"
           className={({ isActive }) =>
